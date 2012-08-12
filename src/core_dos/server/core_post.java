@@ -2,31 +2,28 @@ package core_dos.server;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.CookieStore;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.protocol.ClientContext;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.cookie.Cookie;
-import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.CoreProtocolPNames;
-import org.apache.http.protocol.BasicHttpContext;
 
 import com.google.api.server.spi.response.UnauthorizedException;
-
+import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpContent;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpRequestInitializer;
+import com.google.api.client.http.HttpResponse;
+import com.google.api.client.http.HttpRequestFactory;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.UrlEncodedContent;
+import com.google.api.client.http.apache.ApacheHttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.gwt.http.client.URL;
 
 public class core_post {
 
@@ -35,22 +32,15 @@ public class core_post {
 
 	private Map<String,String> data;
 	private boolean is_lss = false;
-	public static ClientConnectionManager CM=null;
-	BasicHttpContext mHttpContext;
-
-	private DefaultHttpClient mHttpClient;
-	private CookieStore  mCookieStore;
+	
+	//private CookieStore  mCookieStore;
 
 	public core_post(boolean is_lss){
-
+		
+		
 		this.data=new HashMap<String, String>();
 		this.is_lss=is_lss;
-		mHttpContext = new BasicHttpContext();
-		mCookieStore = new BasicCookieStore();        
-		mHttpContext.setAttribute(ClientContext.COOKIE_STORE, mCookieStore);
-
-		mHttpClient = new DefaultHttpClient();
-
+		
 
 	}
 
@@ -58,16 +48,27 @@ public class core_post {
 			String password) throws UnauthorizedException {		
 
 		try{
-			HttpPost post;
-			HttpGet httpget = new HttpGet(SITE);
-			HttpResponse response = mHttpClient.execute(httpget,this.mHttpContext);
-			HttpEntity entity = response.getEntity();
+			
+			HttpTransport httpTransport = new NetHttpTransport();
+			HttpRequestFactory hrf = httpTransport.createRequestFactory();
 
-			System.out.println("Login form get: " + response.getStatusLine());
-			if (entity != null) {
-				entity.consumeContent();
-			}
+			HttpRequest hr = hrf.buildGetRequest(new GenericUrl(SITE));
+			
+			HttpResponse response = hr.execute();
+			
+			HashMap<String,String> hm = new HashMap<String,String>();
+			hm.put("userid", username);
+			hm.put("password",password);
+			UrlEncodedContent content = new UrlEncodedContent(hm);
+			hr = hrf.buildPostRequest(new GenericUrl(SITE2), content);
+			response = hr.execute();
+			
+			
+			String file = "",next="";
+			file = response.parseAsString();
+			
 			System.out.println("Initial set of cookies:");
+			/*
 			List<Cookie> cookies = mCookieStore.getCookies();
 			if (cookies.isEmpty()) {
 				System.out.println("None");
@@ -76,52 +77,8 @@ public class core_post {
 					System.out.println("- " + cookies.get(i).toString());
 				}
 			}
-
-
-			System.out.println("==========second post");
-			post = new HttpPost(SITE2);
-
-
-			List<NameValuePair> nameValuePairs = 
-					new ArrayList<NameValuePair>(2);
-
-			nameValuePairs.add(new BasicNameValuePair("userid", username));
-			nameValuePairs.add(new BasicNameValuePair("password", password));
-
-			
-
-			post.getParams().setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE, false);
-			post.setHeader("Content-Type","application/x-www-form-urlencoded");
-
-			post.setEntity(new  UrlEncodedFormEntity(nameValuePairs));
-
-			response = mHttpClient.execute(post, mHttpContext);
-
-
-			String file = "";
-			String line = "";
-
-			//webview.setHttpAuthUsernamePassword(SITE, "meditech.com", username, password);
-			//webview.postUrl(SITE, EncodingUtils.getBytes(post_data, "BASE64"));
-
-			BufferedReader in = new BufferedReader(
-					new InputStreamReader(response.getEntity().getContent()));
-			
-
-
-			while((line=in.readLine())!=null) {
-				file += line;				
-			}
-
-			if(file.contains("Invalid username/password")||
-					file.contains("Missing field(s)")){
-				
-			}
-
-			in.close();
-			System.out.println(file);
-			System.out.println("==========done post");
-			return file;
+			*/
+		return file;
 		} catch (IOException e) {
 			System.out.println(":::"+e.getMessage());
 			return "Network Error: "+e.getMessage();
