@@ -68,16 +68,7 @@ public class core_post {
 			file = response.parseAsString();
 			
 			System.out.println("Initial set of cookies:");
-			/*
-			List<Cookie> cookies = mCookieStore.getCookies();
-			if (cookies.isEmpty()) {
-				System.out.println("None");
-			} else {
-				for (int i = 0; i < cookies.size(); i++) {
-					System.out.println("- " + cookies.get(i).toString());
-				}
-			}
-			*/
+			
 		return file;
 		} catch (IOException e) {
 			System.out.println(":::"+e.getMessage());
@@ -85,7 +76,7 @@ public class core_post {
 
 		}
 
-
+		
 	}
 
 	protected void onPostExecute(String input)  {
@@ -179,12 +170,12 @@ public class core_post {
 				String event_info_link,
 				String event_name,
 				String event_place) {
-			this.ignored_words = new ArrayList<String>();
-			ignored_words.add("&nbsp;");
-			ignored_words.add("<br>");
 			this.replace_words = new HashMap<String,String>();
 			replace_words.put("&lt;", "<");
 			replace_words.put("&gt;", ">");
+			replace_words.put("&nbsp;", "");
+			replace_words.put("<br>", "");
+			replace_words.put("&amp;", "");
 			no_event = false;
 			this.event_date = fix(event_date);
 			this.event_time = fix(event_time);
@@ -195,23 +186,8 @@ public class core_post {
 					
 		}
 		private String fix(String input){
-			for (int x = 0; x < ignored_words.size();x++){
-				String ignore = ignored_words.get(x);
-				int c = input.indexOf(ignore);
-				while (c!=-1){
-					input = input.substring(0, c) + input.substring(c+ignore.length());
-					c = input.indexOf(ignore);
-				}
-				
-			}
 			for (String key : replace_words.keySet()) {
-				int c = input.indexOf(key);
-				while (c!=-1){
-					input = input.substring(0, c) + 
-							replace_words.get(key)+
-							input.substring(c+key.length());
-					c = input.indexOf(key);
-				}
+				input.replaceAll(key, replace_words.get(key));
 			}
 			return input;
 		}

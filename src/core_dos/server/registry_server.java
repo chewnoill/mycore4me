@@ -51,14 +51,13 @@ public class registry_server extends RemoteServiceServlet implements register_us
 			String content;
 			try {
 				content = post.doSubmit(user, password);
+				
 			} catch (UnauthorizedException e) {
-				// TODO Auto-generated catch block
-				//e.printStackTrace();
 				content = "Failed"+e.getMessage();
 			}
 		
 			return "Hello, " + user + "!<br><br>I am running " + serverInfo
-					+ ".<br><br>It looks like you are an idiot:<br>"+":"+content+":";
+					+ ":"+content+":";
 	}
 
 }
