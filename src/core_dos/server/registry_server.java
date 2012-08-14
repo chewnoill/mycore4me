@@ -40,7 +40,7 @@ public class registry_server extends RemoteServiceServlet implements register_us
 				throw new IllegalArgumentException(
 						"Name must be at least 4 characters long");
 			}
-		
+			
 			String serverInfo = getServletContext().getServerInfo();
 			String userAgent = getThreadLocalRequest().getHeader("User-Agent");
 		

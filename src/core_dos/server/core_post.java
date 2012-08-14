@@ -5,16 +5,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.http.message.BasicNameValuePair;
 
 import com.google.api.server.spi.response.UnauthorizedException;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpContent;
+
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpResponse;
@@ -23,44 +24,57 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.UrlEncodedContent;
 import com.google.api.client.http.apache.ApacheHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.http.HttpHeaders;
+
+
 import com.google.gwt.http.client.URL;
+
+import core_dos.shared.secret;
+
 
 public class core_post {
 
 	public static String SITE = "https://core.meditech.com/core-coreWebHH.desktop.mthh";
 	public static String SITE2= "https://core.meditech.com/signon.mthz";
 
-	private Map<String,String> data;
-	private boolean is_lss = false;
-	
-	//private CookieStore  mCookieStore;
-
 	public core_post(boolean is_lss){
-		
-		
-		this.data=new HashMap<String, String>();
-		this.is_lss=is_lss;
-		
-
+	
 	}
 
 	public String doSubmit(String username,
 			String password) throws UnauthorizedException {		
 
 		try{
-			
 			HttpTransport httpTransport = new NetHttpTransport();
 			HttpRequestFactory hrf = httpTransport.createRequestFactory();
-
-			HttpRequest hr = hrf.buildGetRequest(new GenericUrl(SITE));
 			
+			HttpRequest hr = hrf.buildGetRequest(new GenericUrl(SITE));
 			HttpResponse response = hr.execute();
+			HttpHeaders headers = hr.getHeaders();
+			//String sid = "xyz";
+			//headers.set("cookie", "sid="+sid+"; path=/, sourl=%2fcore%2dcoreWebHH%2edesktop%2emthh; path=/");
+			
+			
+			String s="";
+			for (String key : response.getHeaders().keySet()) {
+				 s+=key+": "+ response.getHeaders().get(key)+"<br>";
+				 //+(String) response.getHeaders().get(key)+"\n";
+			}
+			s = "\ncookies1: "+s+"\n";
+			System.out.println("cookies: "+s);
 			
 			HashMap<String,String> hm = new HashMap<String,String>();
 			hm.put("userid", username);
 			hm.put("password",password);
 			UrlEncodedContent content = new UrlEncodedContent(hm);
 			hr = hrf.buildPostRequest(new GenericUrl(SITE2), content);
+			
+			String t = "";
+			for (String key : response.getHeaders().keySet()) {
+				 t+=key+": " + response.getHeaders().get(key)+"<br>";
+			}
+			s += "\ncookies2: "+t+"\n";
+			
 			response = hr.execute();
 			
 			
@@ -69,17 +83,23 @@ public class core_post {
 			
 			System.out.println("Initial set of cookies:");
 			
-		return file;
+			//return file;
+			
+			return secret.sha1("wcohen");
 		} catch (IOException e) {
 			System.out.println(":::"+e.getMessage());
 			return "Network Error: "+e.getMessage();
 
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		return "";
 
 		
 	}
 
-	protected void onPostExecute(String input)  {
+	protected void parseEvents(String input)  {
 		int d;
 		final ArrayList<String> events = new ArrayList<String>();
 		String event_date;
