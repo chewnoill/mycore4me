@@ -55,6 +55,7 @@ public class registry_server extends RemoteServiceServlet implements register_us
 				// TODO Auto-generated catch block
 				//e.printStackTrace();
 				content = "Failed"+e.getMessage();
+
 			}
 		
 			return "Hello, " + user + "!<br><br>I am running " + serverInfo
