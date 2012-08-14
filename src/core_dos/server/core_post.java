@@ -29,8 +29,9 @@ import com.google.api.client.http.HttpHeaders;
 
 import com.google.gwt.http.client.URL;
 
-import core_dos.shared.secret;
-
+import com.google.api.client.json.jackson.JacksonFactory;
+import com.google.api.services.calendar.Calendar;
+import com.google.api.services.calendar.model.*;
 
 public class core_post {
 
@@ -86,6 +87,24 @@ public class core_post {
 			//return file;
 			
 			return secret.sha1("wcohen");
+			
+			/*
+			 * API: create the Core calendar if it doesn't exist
+			 * 
+			 *  Calendar calendar = new Calendar();
+				
+				calendar.setSummary("Core");
+				calendar.setTimeZone("America/New_York");
+				
+				Calendar createdCalendar = service.calendars().insert(calendar).execute();
+				
+				System.out.println(createdCalendar.getId());
+			 *
+			 * 
+			 *
+			 */
+		return file;
+			return file;
 		} catch (IOException e) {
 			System.out.println(":::"+e.getMessage());
 			return "Network Error: "+e.getMessage();
@@ -214,6 +233,39 @@ public class core_post {
 		public event(String name) {
 			this.event_name = name;
 			this.no_event = true;
+		}
+		public boolean updateCalendar() {
+			/*
+			 * API: insert into Core calendar if not already there
+			 * 
+			 * 
+			    Event event = new Event();
+				
+				event.setSummary("Appointment");
+				event.setLocation("Somewhere");
+				
+				ArrayList<EventAttendee> attendees = new ArrayList<EventAttendee>();
+				attendees.add(new EventAttendee().setEmail("attendeeEmail"));
+				// ...
+				event.setAttendees(attendees);
+				
+				Date startDate = new Date();
+				Date endDate = new Date(startDate.getTime() + 3600000);
+				DateTime start = new DateTime(startDate, TimeZone.getTimeZone("UTC"));
+				event.setStart(new EventDateTime().setDateTime(start));
+				DateTime end = new DateTime(endDate, TimeZone.getTimeZone("UTC"));
+				event.setEnd(new EventDateTime().setDateTime(end));
+				
+				Event createdEvent = service.events().insert("primary", event).execute();
+				
+				System.out.println(createdEvent.getId());
+			 * 
+			 * API: else, update existing event
+			 * 
+			 * calendar.events.update
+			 * 
+			 */
+			return true;
 		}
 		public String toString(){
 			System.out.println(event_date+"\n"+event_time+"\n"+event_name+"\n"+event_place);

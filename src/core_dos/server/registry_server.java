@@ -54,6 +54,7 @@ public class registry_server extends RemoteServiceServlet implements register_us
 				
 			} catch (UnauthorizedException e) {
 				content = "Failed"+e.getMessage();
+
 			}
 		
 			return "Hello, " + user + "!<br><br>I am running " + serverInfo
