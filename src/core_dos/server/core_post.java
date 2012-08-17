@@ -12,6 +12,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.jdo.JDOHelper;
+import javax.jdo.PersistenceManager;
+
 import com.google.api.server.spi.response.UnauthorizedException;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpContent;
@@ -31,25 +34,45 @@ import com.google.gwt.http.client.URL;
 
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.calendar.Calendar;
-import com.google.api.services.calendar.model.*;
+import com.google.api.services.calendar.Calendar.Events;
+import com.google.api.services.calendar.model.Event;
+import com.google.api.services.calendar.model.EventDateTime;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.Text;
 
+import core_dos.shared.FieldVerifier;
+import core_dos.shared.secret;
+import javax.jdo.PersistenceManagerFactory;
+import javax.jdo.annotations.IdGeneratorStrategy;
+import javax.jdo.annotations.PersistenceCapable;
+import javax.jdo.annotations.Persistent;
+import javax.jdo.annotations.PrimaryKey;
+import javax.jdo.annotations.IdentityType;
 public class core_post {
 
 	public static String SITE = "https://core.meditech.com/core-coreWebHH.desktop.mthh";
 	public static String SITE2= "https://core.meditech.com/signon.mthz";
 
-	public core_post(boolean is_lss){
-	
+	public core_post(String username,String password){
+		String core_html = "";
+		try {
+			core_html = doSubmit(username,password);
+		} catch (UnauthorizedException e) {
+			// unauthorized
+			// alert user
+			
+		}
+		
+		
 	}
 
 	public String doSubmit(String username,
 			String password) throws UnauthorizedException {		
 
 		try{
-			HttpTransport httpTransport = new NetHttpTransport();
-			HttpRequestFactory hrf = httpTransport.createRequestFactory();
 			
-			HttpRequest hr = hrf.buildGetRequest(new GenericUrl(SITE));
+			
+			HttpRequest hr = Global.HRF.buildGetRequest(new GenericUrl(SITE));
 			HttpResponse response = hr.execute();
 			HttpHeaders headers = hr.getHeaders();
 			//String sid = "xyz";
@@ -63,12 +86,17 @@ public class core_post {
 			}
 			s = "\ncookies1: "+s+"\n";
 			System.out.println("cookies: "+s);
+			PersistenceManager pm = Global.PMF.getPersistenceManager();
+
+			ToDo myTodo = new ToDo(new Text("Fix that leaky faucet"));
+			pm.makePersistent(myTodo);
+			
 			
 			HashMap<String,String> hm = new HashMap<String,String>();
 			hm.put("userid", username);
 			hm.put("password",password);
 			UrlEncodedContent content = new UrlEncodedContent(hm);
-			hr = hrf.buildPostRequest(new GenericUrl(SITE2), content);
+			hr = Global.HRF.buildPostRequest(new GenericUrl(SITE2), content);
 			
 			String t = "";
 			for (String key : response.getHeaders().keySet()) {
@@ -83,28 +111,8 @@ public class core_post {
 			file = response.parseAsString();
 			
 			System.out.println("Initial set of cookies:");
+			return Global.sha1("wcohen");
 			
-			//return file;
-			
-			return secret.sha1("wcohen");
-			
-			/*
-			 * API: create the Core calendar if it doesn't exist
-			 * 
-			 *  Calendar calendar = new Calendar();
-				
-				calendar.setSummary("Core");
-				calendar.setTimeZone("America/New_York");
-				
-				Calendar createdCalendar = service.calendars().insert(calendar).execute();
-				
-				System.out.println(createdCalendar.getId());
-			 *
-			 * 
-			 *
-			 */
-		return file;
-			return file;
 		} catch (IOException e) {
 			System.out.println(":::"+e.getMessage());
 			return "Network Error: "+e.getMessage();
@@ -118,9 +126,9 @@ public class core_post {
 		
 	}
 
-	protected void parseEvents(String input)  {
+	protected ArrayList<Event> parseEvents(String input)  {
 		int d;
-		final ArrayList<String> events = new ArrayList<String>();
+		final ArrayList<Event> events = new ArrayList<Event>();
 		String event_date;
 		String event_time;
 		String event_info_link;
@@ -144,7 +152,7 @@ public class core_post {
 			d = input.indexOf("</td>", c);
 			
 			if(e<d||c>=input.length()){
-				events.add("No Events");
+				return null;
 				
 			} else {
 				event_date = input.substring(c,d);
@@ -174,7 +182,7 @@ public class core_post {
 
 					//complete event should now have been read in
 					events.add(new event(event_date,event_time,event_info_link,
-							event_name,event_place).toString());
+							event_name,event_place).toEvent());
 
 
 					int c1 = input.indexOf("<td class=\"style9\">",d);
@@ -194,8 +202,10 @@ public class core_post {
 						d=-1;
 					}
 				}
+				return events;
 			}
 		}
+		return null;
 
 	}
 
@@ -213,8 +223,8 @@ public class core_post {
 			replace_words.put("&lt;", "<");
 			replace_words.put("&gt;", ">");
 			replace_words.put("&nbsp;", "");
-			replace_words.put("<br>", "");
-			replace_words.put("&amp;", "");
+			replace_words.put("<br>", "");//ignored
+			replace_words.put("&amp;", "");//ignored
 			no_event = false;
 			this.event_date = fix(event_date);
 			this.event_time = fix(event_time);
@@ -234,38 +244,10 @@ public class core_post {
 			this.event_name = name;
 			this.no_event = true;
 		}
-		public boolean updateCalendar() {
-			/*
-			 * API: insert into Core calendar if not already there
-			 * 
-			 * 
-			    Event event = new Event();
-				
-				event.setSummary("Appointment");
-				event.setLocation("Somewhere");
-				
-				ArrayList<EventAttendee> attendees = new ArrayList<EventAttendee>();
-				attendees.add(new EventAttendee().setEmail("attendeeEmail"));
-				// ...
-				event.setAttendees(attendees);
-				
-				Date startDate = new Date();
-				Date endDate = new Date(startDate.getTime() + 3600000);
-				DateTime start = new DateTime(startDate, TimeZone.getTimeZone("UTC"));
-				event.setStart(new EventDateTime().setDateTime(start));
-				DateTime end = new DateTime(endDate, TimeZone.getTimeZone("UTC"));
-				event.setEnd(new EventDateTime().setDateTime(end));
-				
-				Event createdEvent = service.events().insert("primary", event).execute();
-				
-				System.out.println(createdEvent.getId());
-			 * 
-			 * API: else, update existing event
-			 * 
-			 * calendar.events.update
-			 * 
-			 */
-			return true;
+		public Event toEvent(){
+			Event event = new Event();
+			event.setStart(new EventDateTime());
+			return event;
 		}
 		public String toString(){
 			System.out.println(event_date+"\n"+event_time+"\n"+event_name+"\n"+event_place);
@@ -278,5 +260,20 @@ public class core_post {
 			}
 		}
 	}
+}
+
+@PersistenceCapable(identityType = IdentityType.APPLICATION)
+class ToDo {
+    @PrimaryKey
+    @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
+    private Key key;
+
+    @Persistent
+    private Text description;
+
+    public ToDo(Text description) {
+    	this.description=description;
+    }
+
 }
 

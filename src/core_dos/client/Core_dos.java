@@ -8,6 +8,9 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.dom.client.KeyUpEvent;
 import com.google.gwt.event.dom.client.KeyUpHandler;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
@@ -21,7 +24,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
  */
-public class Core_dos implements EntryPoint {
+public class Core_dos implements EntryPoint,ValueChangeHandler {
 	/**
 	 * The message displayed to the user when the server cannot be reached or
 	 * returns an error.
@@ -29,12 +32,14 @@ public class Core_dos implements EntryPoint {
 	private static final String SERVER_ERROR = "An error occurred while "
 			+ "attempting to contact the server. Please check your network "
 			+ "connection and try again.";
-
+	private String fragment = "";
+	Label lbl = new Label();
 	/**
 	 * Create a remote service proxy to talk to the server-side Greeting service.
 	 */
 	private final register_userAsync reg_service = GWT
 			.create(register_user.class);
+	private String access_token;
 
 	/**
 	 * This is the entry point method.
@@ -43,6 +48,14 @@ public class Core_dos implements EntryPoint {
 		final Button sendButton = new Button("Send");
 		final TextBox username = new TextBox();
 		final PasswordTextBox password = new PasswordTextBox();
+		
+		VerticalPanel panel = new VerticalPanel();
+	    panel.add(lbl);
+	    RootPanel.get().add(panel);
+	    
+		History.addValueChangeHandler(this);
+		History.fireCurrentHistoryState();
+		//String gdata = google_post.post();
 		
 		username.setText("username");
 		password.setText("password");
@@ -128,7 +141,9 @@ public class Core_dos implements EntryPoint {
 				sendButton.setEnabled(false);
 				textToServerLabel.setText(textToServer);
 				serverResponseLabel.setText("");
-				reg_service.register(user,pass,
+				reg_service.register(user,
+						pass,
+						Core_dos.this.access_token,
 						new AsyncCallback<String>() {
 							public void onFailure(Throwable caught) {
 								// Show the RPC error message to the user
@@ -157,5 +172,14 @@ public class Core_dos implements EntryPoint {
 		MyHandler handler = new MyHandler();
 		sendButton.addClickHandler(handler);
 		username.addKeyUpHandler(handler);
+	}
+
+	@Override
+	public void onValueChange(ValueChangeEvent event) {
+		lbl.setText("The current history token is: " + event.getValue());
+		this.fragment = (String) event.getValue();
+		int stoken = this.fragment.indexOf("access_token=")+"access_token=".length();
+		int etoken = this.fragment.indexOf("&",stoken);
+		this.access_token = this.fragment.substring(stoken, etoken);
 	}
 }

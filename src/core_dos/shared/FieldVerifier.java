@@ -1,5 +1,11 @@
 package core_dos.shared;
 
+import javax.jdo.JDOHelper;
+import javax.jdo.PersistenceManagerFactory;
+
+import com.google.api.client.http.HttpRequestFactory;
+import com.google.api.client.http.javanet.NetHttpTransport;
+
 /**
  * <p>
  * FieldVerifier validates that the name the user enters is valid.
@@ -21,7 +27,6 @@ package core_dos.shared;
  * </p>
  */
 public class FieldVerifier {
-
 	/**
 	 * Verifies that the specified name is valid for our service.
 	 * 
