@@ -37,8 +37,8 @@ import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.Calendar.Events;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
-import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.Text;
+
+
 
 import core_dos.shared.FieldVerifier;
 import core_dos.shared.secret;
@@ -86,23 +86,15 @@ public class core_post {
 			}
 			s = "\ncookies1: "+s+"\n";
 			System.out.println("cookies: "+s);
-			PersistenceManager pm = Global.PMF.getPersistenceManager();
-
-			ToDo myTodo = new ToDo(new Text("Fix that leaky faucet"));
-			pm.makePersistent(myTodo);
 			
 			
 			HashMap<String,String> hm = new HashMap<String,String>();
 			hm.put("userid", username);
 			hm.put("password",password);
 			UrlEncodedContent content = new UrlEncodedContent(hm);
+			
 			hr = Global.HRF.buildPostRequest(new GenericUrl(SITE2), content);
 			
-			String t = "";
-			for (String key : response.getHeaders().keySet()) {
-				 t+=key+": " + response.getHeaders().get(key)+"<br>";
-			}
-			s += "\ncookies2: "+t+"\n";
 			
 			response = hr.execute();
 			
@@ -111,18 +103,13 @@ public class core_post {
 			file = response.parseAsString();
 			
 			System.out.println("Initial set of cookies:");
-			return Global.sha1("wcohen");
+			return file;
 			
 		} catch (IOException e) {
 			System.out.println(":::"+e.getMessage());
 			return "Network Error: "+e.getMessage();
 
-		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return "";
-
+		} 
 		
 	}
 
@@ -262,18 +249,5 @@ public class core_post {
 	}
 }
 
-@PersistenceCapable(identityType = IdentityType.APPLICATION)
-class ToDo {
-    @PrimaryKey
-    @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
-    private Key key;
 
-    @Persistent
-    private Text description;
-
-    public ToDo(Text description) {
-    	this.description=description;
-    }
-
-}
 

@@ -1,6 +1,9 @@
 package core_dos.client;
 
 import core_dos.shared.FieldVerifier;
+
+
+import com.google.gwt.core.client.Callback;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -10,6 +13,7 @@ import com.google.gwt.event.dom.client.KeyUpEvent;
 import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.event.shared.SimpleEventBus;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
@@ -39,12 +43,22 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 	 */
 	private final register_userAsync reg_service = GWT
 			.create(register_user.class);
+	
+	private static final String CLIENT_ID = core_dos.shared.secret.CLIENT_ID;
+	private static final String API_KEY = core_dos.shared.secret.API_KEY;
+	private static final String APPLICATION_NAME = "Core Dos";
+	
 	private String access_token;
 
 	/**
 	 * This is the entry point method.
 	 */
 	public void onModuleLoad() {
+		//CALENDAR.		        
+		//new GoogleApiRequestTransport(APPLICATION_NAME, API_KEY));
+
+		
+		
 		final Button sendButton = new Button("Send");
 		final TextBox username = new TextBox();
 		final PasswordTextBox password = new PasswordTextBox();
