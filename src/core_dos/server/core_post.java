@@ -84,8 +84,17 @@ public class core_post {
 				 s+=key+": "+ response.getHeaders().get(key)+"<br>";
 				 //+(String) response.getHeaders().get(key)+"\n";
 			}
-			s = "\ncookies1: "+s+"\n";
-			System.out.println("cookies: "+s);
+			
+			
+			String cookie = response.getHeaders().get("set-cookie").toString();
+			System.out.println("cookies1: "+s+"\n"+cookie);
+			int c_s = cookie.indexOf("[")+1;
+			int c_e = cookie.indexOf("]",c_s);
+			String c = cookie.substring(c_s, c_e);
+			headers.put("cookie",c);
+			
+			//headers.put("sid", sid);
+			//System.out.println("cookies: "+s);
 			
 			
 			HashMap<String,String> hm = new HashMap<String,String>();
@@ -94,15 +103,37 @@ public class core_post {
 			UrlEncodedContent content = new UrlEncodedContent(hm);
 			
 			hr = Global.HRF.buildPostRequest(new GenericUrl(SITE2), content);
-			
-			
+			hr.setHeaders(headers);
+			s="";
+			for (String key : hr.getHeaders().keySet()) {
+				 s+=key+": "+ hr.getHeaders().get(key)+"\n";
+				 //+(String) response.getHeaders().get(key)+"\n";
+			}
+			System.out.println("cookies1.5\n "+s);
 			response = hr.execute();
 			
+			cookie = response.getHeaders().get("set-cookie").toString();
+			System.out.println("cookie1.6: "+cookie);
+			c_s = cookie.indexOf("[")+1;
+			c_e = cookie.indexOf("]",c_s);
+			c = cookie.substring(c_s, c_e);
+			cookie = headers.get("cookie")+";"+c;
+			headers.put("cookie", cookie);
 			
+			System.out.println("cookies2: "+cookie);
 			String file = "",next="";
 			file = response.parseAsString();
 			
-			System.out.println("Initial set of cookies:");
+			ArrayList<String> page = core_parser.parseDayViewHTML(file);
+			String cal_link = core_parser.getCalendarLink(page.get(2));
+			
+			hr = Global.HRF.buildGetRequest(new GenericUrl(cal_link));
+			hr.setHeaders(headers);
+			response = hr.execute();
+			file = response.parseAsString();
+			System.out.println("-----------------------------------\n"+
+					file);
+			
 			return file;
 			
 		} catch (IOException e) {
@@ -211,7 +242,7 @@ public class core_post {
 			replace_words.put("&gt;", ">");
 			replace_words.put("&nbsp;", "");
 			replace_words.put("<br>", "");//ignored
-			replace_words.put("&amp;", "");//ignored
+			replace_words.put("&amp;", "&");//ignored
 			no_event = false;
 			this.event_date = fix(event_date);
 			this.event_time = fix(event_time);

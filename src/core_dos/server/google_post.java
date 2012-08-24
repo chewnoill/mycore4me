@@ -77,6 +77,7 @@ public class google_post {
 				hm.put("summary", "core");
 				JsonHttpContent update = new JsonHttpContent(Global.JF, 
 						hm);
+				//{"summary":"core"}
 				
 				System.out.println("update to string:"+update+"\n\n---");
 				hr = Global.HRF.buildPostRequest(new GenericUrl(BASE_CAL+GET+
@@ -87,6 +88,7 @@ public class google_post {
 				
 				System.out.println("encoding: " + hr.getContent().getType());
 				response = hr.execute();
+				
 				file = response.parseAsString();
 				System.out.println(file);
 				JsonObjectParser JOP = Global.JF.createJsonObjectParser();
