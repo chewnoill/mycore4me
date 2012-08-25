@@ -6,18 +6,20 @@ import java.util.ArrayList;
 public class core_parser {
 	private static final String BASE_SITE = "https://core.meditech.com"; 
 	/**
-	 * div 0 - 						empty
-	 * div 1 - 					schedule,worklist,inquiries
-	 * div 2 - 					left arrow, date, right arrow
-	 * 			Day View			|		calendar view	|	event view
-	 * div 3 - event table      	|		month picker	|   event name      
-	 * div 4 - events/no events		|		calendar 		|   when/what/where
-	 * div 5 - empty?               |       top				|   who
-	 * div 6 - 		schedule,worklist,inquiries				|   blank
-	 * div 7 - 					logoff						|   notes
-	 * div 8 -												|   top
-	 * div 9 -												| 	schedule,worklist,inquiries
-	 * div 10 -												|	logoff
+	 * <table border="1">
+	 * <tr><td>div 0 </td><td colspan=3>empty	</td></tr>
+	 * <tr><td>div 1 </td><td colspan=3>schedule,worklist,inquiries</td></tr>
+	 * <tr><td>div 2 </td><td colspan=3>left arrow, date, right arrow</td></tr>
+	 * <tr><td></td><td>Day View</td><td>calendar view</td><td>event view</td></tr>
+	 * <tr><td>div 3</td><td>event table</td><td>month picker</td><td>event name</td></tr>  
+	 * <tr><td>div 4</td><td>events/no events</td><td>calendar</td><td>when/what/where</td></tr>
+	 * <tr><td>div 5</td><td>empty?</td><td>top</td><td>who</td></tr>
+	 * <tr><td>div 6</td><td colspan=2>schedule,worklist,inquiries</td><td>blank</td></tr>
+	 * <tr><td>div 7</td><td colspan=2>logoff</td><td>notes</td></tr>
+	 * <tr><td>div 8</td><td></td><td></td><td>top</td></tr>
+	 * <tr><td>div 9</td><td></td><td></td><td>schedule,worklist,inquiries</td></tr>
+	 * <tr><td>div 10</td><td></td><td></td><td>Logoff</td></tr>
+	 * </table>
 	 * @param input
 	 * @return array list of div elements on the page
 	 * 
