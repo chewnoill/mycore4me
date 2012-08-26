@@ -1,5 +1,10 @@
 package core_dos.server;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 import com.google.api.client.googleapis.auth.clientlogin.ClientLogin;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
@@ -55,10 +60,16 @@ public class registry_server extends RemoteServiceServlet implements register_us
 			// Escape data from the client to avoid cross-site script vulnerabilities.
 			user = escapeHtml(user);
 			userAgent = escapeHtml(userAgent);
-			core_post post = new core_post(user,password);
-			String content = access_token;
 			
-			content += "\n"+google_post.post(access_token);
+			//SimpleDateFormat rfc = new SimpleDateFormat("yyyy-MM-ddTHH:mm:ssZ");
+			
+			
+			core_post post = new core_post(user,password);
+			
+			String content = "<br>\n";
+			//String content ="";
+			google_post g_post = new google_post();
+			g_post.post(access_token,post.getEvents());
 		
 			return "Hello, " + user + "!<br><br>I am running " + serverInfo
 					+ ":"+content+":";

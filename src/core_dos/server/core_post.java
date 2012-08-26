@@ -52,7 +52,8 @@ public class core_post {
 
 	public static String SITE = "https://core.meditech.com/core-coreWebHH.desktop.mthh";
 	public static String SITE2= "https://core.meditech.com/signon.mthz";
-
+	private HttpHeaders headers;
+	private ArrayList<HashMap<String,Object>> events;
 	public core_post(String username,String password){
 		String core_html = "";
 		try {
@@ -74,7 +75,7 @@ public class core_post {
 			
 			HttpRequest hr = Global.HRF.buildGetRequest(new GenericUrl(SITE));
 			HttpResponse response = hr.execute();
-			HttpHeaders headers = hr.getHeaders();
+			headers = hr.getHeaders();
 			//String sid = "xyz";
 			//headers.set("cookie", "sid="+sid+"; path=/, sourl=%2fcore%2dcoreWebHH%2edesktop%2emthh; path=/");
 			
@@ -87,7 +88,6 @@ public class core_post {
 			
 			
 			String cookie = response.getHeaders().get("set-cookie").toString();
-			System.out.println("cookies1: "+s+"\n"+cookie);
 			int c_s = cookie.indexOf("[")+1;
 			int c_e = cookie.indexOf("]",c_s);
 			String c = cookie.substring(c_s, c_e);
@@ -109,30 +109,32 @@ public class core_post {
 				 s+=key+": "+ hr.getHeaders().get(key)+"\n";
 				 //+(String) response.getHeaders().get(key)+"\n";
 			}
-			System.out.println("cookies1.5\n "+s);
 			response = hr.execute();
 			
 			cookie = response.getHeaders().get("set-cookie").toString();
-			System.out.println("cookie1.6: "+cookie);
 			c_s = cookie.indexOf("[")+1;
 			c_e = cookie.indexOf("]",c_s);
 			c = cookie.substring(c_s, c_e);
 			cookie = headers.get("cookie")+";"+c;
 			headers.put("cookie", cookie);
 			
-			System.out.println("cookies2: "+cookie);
+			
 			String file = "",next="";
 			file = response.parseAsString();
 			
-			ArrayList<String> page = core_parser.parseDayViewHTML(file);
-			String cal_link = core_parser.getCalendarLink(page.get(2));
+			ArrayList<String> landing_page = core_parser.parseCoreViewHTML(file,"day");
+			String cal_link = core_parser.getCalendarLink(landing_page.get(2));
 			
 			hr = Global.HRF.buildGetRequest(new GenericUrl(cal_link));
 			hr.setHeaders(headers);
 			response = hr.execute();
+			
 			file = response.parseAsString();
-			System.out.println("-----------------------------------\n"+
-					file);
+			
+			ArrayList<String> calendar_page = core_parser.parseCoreViewHTML(file,"cal");
+			
+			this.events = getEventsFromCal(calendar_page.get(4));
+			System.out.println("-----------------------------------\n");
 			
 			return file;
 			
@@ -143,7 +145,57 @@ public class core_post {
 		} 
 		
 	}
+	
+	ArrayList<HashMap<String,Object>> getEvents(){
+		return this.events;
+	}
+	/**
+	 * 
+	 * @param cal_table
+	 * @throws IOException 
+	 */
+	private ArrayList<HashMap<String,Object>> getEventsFromCal(String cal_table) throws IOException{
+		ArrayList<String> day_view_links = core_parser.parseEventFromCal(cal_table);
+		ArrayList<String> event_view_links = new ArrayList<String>();
+		ArrayList<HashMap<String,Object>> ret = new ArrayList<HashMap<String,Object>>();
+		int x = 0;
+		System.out.println("event links--------------------------------\n");
+		for(String ev: day_view_links){
+			System.out.println("loading: "+ev);
+			HttpRequest hr = Global.HRF.buildGetRequest(new GenericUrl(ev));
+			hr.setHeaders(headers);
+			HttpResponse response = hr.execute();
 
+			
+			String day_view = response.parseAsString();
+			ArrayList<String> day = core_parser.parseCoreViewHTML(day_view,"day");
+			if(day.get(4).indexOf("No Events")!=-1){
+				//nothing found, I should never get here
+				System.out.println((++x)+": "+ev+": No Events");
+		
+			}else {
+				
+				event_view_links = core_parser.parseEventFromDay(day.get(3));
+				for(String ev1: event_view_links){
+					System.out.println("loading event view: "+ev1);
+					hr = Global.HRF.buildGetRequest(new GenericUrl(ev1));
+					hr.setHeaders(headers);
+					response = hr.execute();
+					String event_view = response.parseAsString();
+					
+					ArrayList<String> event_body = core_parser.parseCoreViewHTML(event_view, "day");
+					System.out.println("event: "+ev1+":"+event_view.length()+":"+event_body.size());
+					
+					HashMap<String,Object> event = core_parser.parseEventFromEventView(event_body);
+					ret.add(event);
+					
+				}
+			}
+			
+		}
+		return ret;
+		
+	}
 	protected ArrayList<Event> parseEvents(String input)  {
 		int d;
 		final ArrayList<Event> events = new ArrayList<Event>();
@@ -252,16 +304,16 @@ public class core_post {
 			
 					
 		}
+		public event(String event_link){
+			
+		}
 		private String fix(String input){
 			for (String key : replace_words.keySet()) {
 				input.replaceAll(key, replace_words.get(key));
 			}
 			return input;
 		}
-		public event(String name) {
-			this.event_name = name;
-			this.no_event = true;
-		}
+		
 		public Event toEvent(){
 			Event event = new Event();
 			event.setStart(new EventDateTime());
