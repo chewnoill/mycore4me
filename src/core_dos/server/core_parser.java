@@ -183,42 +183,52 @@ public class core_parser {
 	 * 
 	 * </table>
 	 */
-	public static HashMap<String,Object> parseEventFromEventView(ArrayList<String> event_view){
+	public static ArrayList<JsEvent> parseEventFromEventView(ArrayList<String> event_view){
+		ArrayList<JsEvent> events = new ArrayList<JsEvent>();
 		
 		HashMap<String,Object> ret = new HashMap<String,Object>();
 		String yyyy = getYYYY(event_view.get(2));
 		String summary = getSummary(event_view.get(3));
-		ret.put("summary", summary);
 		String location = getLocation(event_view.get(4));
-		ret.put("location", location);
+		
 		
 		ArrayList<Date> dates = getDates(event_view.get(4));
-		HashMap<String,String> start = new HashMap<String,String>();
-		//2008-09-08T22:47:31-07:00
+		
+		SimpleDateFormat rfc3339 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ",Locale.US);
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd",Locale.US);
 		if(dates.size()>1){
-			SimpleDateFormat rfc3339 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ",Locale.US);
-			start.put("dateTime", rfc3339.format(dates.get(0)));
-			ret.put("start", start);
 			
-			HashMap<String,String> end = new HashMap<String,String>();
-			end.put("dateTime", rfc3339.format(dates.get(1)));
-			ret.put("end", end);
+			for(int x=0;x<dates.size(); x+=2){
+				String start_date = rfc3339.format(dates.get(x));
+				String end_date =  rfc3339.format(dates.get(x+1));
+				
+				JsEvent ev = new JsEvent();
+				ev.summary=summary;
+				ev.location=location;
+				ev.start.dateTime = start_date;
+				ev.end.dateTime = end_date;
+				events.add(ev);
+			}
 		}else if(dates.size()==1){
-			SimpleDateFormat rfc3339 = new SimpleDateFormat("yyyy-MM-dd",Locale.US);
 			Date s = dates.get(0);
 			
-			start.put("date", rfc3339.format(dates.get(0)));
-			ret.put("start", start);
+			String start_date = sdf.format(dates.get(0));
+			String end_date = sdf.format(dates.get(0).getTime()+MILLIS_IN_DAY);
 			
-			HashMap<String,String> end = new HashMap<String,String>();
-			end.put("date", rfc3339.format(dates.get(0).getTime()+MILLIS_IN_DAY));
-			ret.put("end", end);
+			
+			JsEvent allDayEvent = new JsEvent();
+			allDayEvent.summary = summary;
+			allDayEvent.location = location;
+			allDayEvent.start.date = start_date;
+			allDayEvent.end.date = end_date;
+			events.add(allDayEvent);
+			
 		}else {
 			System.out.println("ERROR-------------\n"+event_view.get(3));
 		}
 		
 		//descriptions can contain html from core, but google calendar doesn't support that
-		return ret;
+		return events;
 	}
 	/**
 	 * getDates

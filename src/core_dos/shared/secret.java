@@ -1,8 +1,5 @@
 package core_dos.shared;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
 public final class secret {
 	public static String SQL_SERVER = "mycore4me.db.7935234.hostedresource.com";
 	public static String SQL_DATABASE = "mycore4me";

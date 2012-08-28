@@ -53,7 +53,7 @@ public class core_post {
 	public static String SITE = "https://core.meditech.com/core-coreWebHH.desktop.mthh";
 	public static String SITE2= "https://core.meditech.com/signon.mthz";
 	private HttpHeaders headers;
-	private ArrayList<HashMap<String,Object>> events;
+	private ArrayList<JsEvent> events;
 	public core_post(String username,String password){
 		String core_html = "";
 		try {
@@ -86,12 +86,18 @@ public class core_post {
 				 //+(String) response.getHeaders().get(key)+"\n";
 			}
 			
+			String cookie = headers.get("cookie")!=null?headers.get("cookie").toString():"";
 			
-			String cookie = response.getHeaders().get("set-cookie").toString();
-			int c_s = cookie.indexOf("[")+1;
-			int c_e = cookie.indexOf("]",c_s);
-			String c = cookie.substring(c_s, c_e);
-			headers.put("cookie",c);
+			if(response.getHeaders().get("set-cookie")!=null){
+				cookie = response.getHeaders().get("set-cookie").toString();
+				int c_s = cookie.indexOf("[")+1;
+				int c_e = cookie.indexOf("]",c_s);
+				String c = cookie.substring(c_s, c_e);
+				cookie += ";"+c;
+					
+			}
+			
+			headers.put("cookie",cookie);
 			
 			//headers.put("sid", sid);
 			//System.out.println("cookies: "+s);
@@ -110,19 +116,24 @@ public class core_post {
 				 //+(String) response.getHeaders().get(key)+"\n";
 			}
 			response = hr.execute();
+			cookie = headers.get("cookie")!=null?headers.get("cookie").toString():"";
 			
-			cookie = response.getHeaders().get("set-cookie").toString();
-			c_s = cookie.indexOf("[")+1;
-			c_e = cookie.indexOf("]",c_s);
-			c = cookie.substring(c_s, c_e);
-			cookie = headers.get("cookie")+";"+c;
-			headers.put("cookie", cookie);
+			if(response.getHeaders().get("set-cookie")!=null){
+				cookie = response.getHeaders().get("set-cookie").toString();
+				int c_s = cookie.indexOf("[")+1;
+				int c_e = cookie.indexOf("]",c_s);
+				String c = cookie.substring(c_s, c_e);
+				cookie += ";"+c;
+					
+			}
 			
+			headers.put("cookie",cookie);
 			
 			String file = "",next="";
 			file = response.parseAsString();
 			
 			ArrayList<String> landing_page = core_parser.parseCoreViewHTML(file,"day");
+			if(landing_page==null){return null;}
 			String cal_link = core_parser.getCalendarLink(landing_page.get(2));
 			
 			hr = Global.HRF.buildGetRequest(new GenericUrl(cal_link));
@@ -146,7 +157,7 @@ public class core_post {
 		
 	}
 	
-	ArrayList<HashMap<String,Object>> getEvents(){
+	ArrayList<JsEvent> getEvents(){
 		return this.events;
 	}
 	/**
@@ -154,10 +165,10 @@ public class core_post {
 	 * @param cal_table
 	 * @throws IOException 
 	 */
-	private ArrayList<HashMap<String,Object>> getEventsFromCal(String cal_table) throws IOException{
+	private ArrayList<JsEvent> getEventsFromCal(String cal_table) throws IOException{
 		ArrayList<String> day_view_links = core_parser.parseEventFromCal(cal_table);
 		ArrayList<String> event_view_links = new ArrayList<String>();
-		ArrayList<HashMap<String,Object>> ret = new ArrayList<HashMap<String,Object>>();
+		ArrayList<JsEvent> ret = new ArrayList<JsEvent>();
 		int x = 0;
 		System.out.println("event links--------------------------------\n");
 		for(String ev: day_view_links){
@@ -186,8 +197,17 @@ public class core_post {
 					ArrayList<String> event_body = core_parser.parseCoreViewHTML(event_view, "day");
 					System.out.println("event: "+ev1+":"+event_view.length()+":"+event_body.size());
 					
-					HashMap<String,Object> event = core_parser.parseEventFromEventView(event_body);
-					ret.add(event);
+					ArrayList<JsEvent> events = core_parser.parseEventFromEventView(event_body);
+					for (JsEvent event : events){
+						
+						if (!ret.contains(event)){
+							System.out.println("adding:: "+event);
+							ret.add(event);
+						}else{
+							System.out.println("skipping");
+						}
+					}
+					
 					
 				}
 			}
@@ -196,140 +216,8 @@ public class core_post {
 		return ret;
 		
 	}
-	protected ArrayList<Event> parseEvents(String input)  {
-		int d;
-		final ArrayList<Event> events = new ArrayList<Event>();
-		String event_date;
-		String event_time;
-		String event_info_link;
-		String event_name;
-		String event_place;
-
-		//parse file for event info:
-		
-		//check for errors
-		int t = input.indexOf("Failed to connect with core");
-		if(t!=-1&&t<10){
-			//failed to connect
-		}else {
-			//connected
-
-			//start parsing dates
-			int c = input.indexOf("<td class=\"style9\">");
-			int e = input.indexOf("LogOutBig.png",c);
-			d = input.indexOf("</td>", c);
-			c=c+"<td class=\"style9\">".length();
-			d = input.indexOf("</td>", c);
-			
-			if(e<d||c>=input.length()){
-				return null;
-				
-			} else {
-				event_date = input.substring(c,d);
-
-				while (d != -1){
-
-					c = input.indexOf("<td class=\"style12\">",d);
-
-
-					c=c+"<td class=\"style12\">".length();
-					d = input.indexOf("</td>",c);
-					event_time = input.substring(c,d);
-
-					c = input.indexOf("<td class=\"style12\"><a href=\"",d);
-					c=c+"<td class=\"style12\"><a href=\"".length();
-					d = input.indexOf("\">",c);
-					event_info_link = input.substring(c,d);
-
-					c = d + "\">".length();
-					d = input.indexOf("</a>",c);
-					event_name = input.substring(c,d);
-
-					c = input.indexOf("<td class=\"style12\">",d);
-					c=c+"<td class=\"style12\">".length();
-					d = input.indexOf("</td>",c);
-					event_place = input.substring(c,d);
-
-					//complete event should now have been read in
-					events.add(new event(event_date,event_time,event_info_link,
-							event_name,event_place).toEvent());
-
-
-					int c1 = input.indexOf("<td class=\"style9\">",d);
-					int c2 = input.indexOf("<td class=\"style12\">",d);
-					if (c2<c1 || (c1 == -1)){
-						//maybe read in more events on this date 
-						d = c2;
-					} else if (c1!=-1) {
-						//next date
-						c = c1;
-						c=c+"<td class=\"style9\">".length();
-						d = input.indexOf("</td>", c);
-						event_date = input.substring(c,d);
-
-					} else {
-						//done
-						d=-1;
-					}
-				}
-				return events;
-			}
-		}
-		return null;
-
-	}
-
-	class event{
-		String event_date,event_time,event_info_link,event_name,event_place;
-		boolean no_event;
-		ArrayList<String> ignored_words;
-		private HashMap<String, String> replace_words;
-		public event(String event_date,
-				String event_time,
-				String event_info_link,
-				String event_name,
-				String event_place) {
-			this.replace_words = new HashMap<String,String>();
-			replace_words.put("&lt;", "<");
-			replace_words.put("&gt;", ">");
-			replace_words.put("&nbsp;", "");
-			replace_words.put("<br>", "");//ignored
-			replace_words.put("&amp;", "&");//ignored
-			no_event = false;
-			this.event_date = fix(event_date);
-			this.event_time = fix(event_time);
-			this.event_info_link = fix(event_info_link);
-			this.event_name = fix(event_name);
-			this.event_place = fix(event_place);
-			
-					
-		}
-		public event(String event_link){
-			
-		}
-		private String fix(String input){
-			for (String key : replace_words.keySet()) {
-				input.replaceAll(key, replace_words.get(key));
-			}
-			return input;
-		}
-		
-		public Event toEvent(){
-			Event event = new Event();
-			event.setStart(new EventDateTime());
-			return event;
-		}
-		public String toString(){
-			System.out.println(event_date+"\n"+event_time+"\n"+event_name+"\n"+event_place);
-			if (no_event){
-				return event_name;
-			} else if(event_place.length()>0) {
-				return event_date+" "+event_time+"\n"+event_name+"\n"+event_place;
-			} else {
-				return event_date+" "+event_time+"\n"+event_name;
-			}
-		}
-	}
+	
+	
 }
 
 

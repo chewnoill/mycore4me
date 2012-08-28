@@ -1,30 +1,30 @@
 package core_dos.server;
 
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.apache.http.entity.StringEntity;
+import org.codehaus.jackson.JsonNode;
 
-import com.google.api.client.googleapis.json.JsonCContent;
-import com.google.api.client.http.ByteArrayContent;
+
 import com.google.api.client.http.GenericUrl;
-import com.google.api.client.http.HttpContent;
 import com.google.api.client.http.HttpHeaders;
-import com.google.api.client.http.HttpMediaType;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.http.json.JsonHttpContent;
-import com.google.api.client.http.json.JsonHttpParser;
-import com.google.api.client.json.JsonEncoding;
 import com.google.api.client.json.JsonGenerator;
 import com.google.api.client.json.JsonObjectParser;
+import com.google.api.client.json.JsonParser;
 import com.google.api.services.calendar.Calendar;
-import com.google.gwt.json.client.JSONObject;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gwt.core.client.JsArray;
 
 import core_dos.shared.FieldVerifier;
 import core_dos.shared.secret;
@@ -36,6 +36,7 @@ public class google_post {
 	//INSERT: POST https://www.googleapis.com/calendar/v3/calendars
 	//REQUIRES SCOPE: https://www.googleapis.com/auth/calendar
 	static String GET = "/calendars";
+	static String LIST = "/users/me/calendarList";
 	private HttpHeaders headers;
 	private String cal_id;
 	public google_post(){
@@ -43,12 +44,16 @@ public class google_post {
 	}
 	
 	public String post(String access_token, 
-			ArrayList<HashMap<String,Object>> events){
+			ArrayList<JsEvent> events){
 		String auth = checkToken(access_token);
-		String calendar = findCalendar(CAL_NAME);
+		cal_id = findCalendar(CAL_NAME);
 		//if calendar not found
 		//create
-		calendar = createCal(CAL_NAME);
+		System.out.println("cal_id1: "+cal_id);
+		if(cal_id==null){
+			cal_id = createCal(CAL_NAME);
+		}
+		System.out.println("cal_id2: "+cal_id);
 		//get calId from calObject
 		/*
 		 * encoding: application/json; charset=UTF-8
@@ -59,13 +64,8 @@ public class google_post {
 		 *	 "summary": "core"
 		 *	}
 		 */
-		String pat_cal_id_start = "\"id\": \"";
-		String pat_cal_id_end = "\",";
-		int cal_id_start = calendar.indexOf(pat_cal_id_start)+pat_cal_id_start.length();
-		int cal_id_end = calendar.indexOf(pat_cal_id_end,cal_id_start);
-		String calId = calendar.substring(cal_id_start,cal_id_end);
 		
-		String results = insertEvents(calId,events);
+		String results = insertEvents(cal_id,events);
 		return results;
 	}
 	private String checkToken(String access_token){
@@ -84,7 +84,6 @@ public class google_post {
 					new GenericUrl(CHECK_TOKEN+
 					"access_token="+access_token));
 			response = hr.execute();
-			System.out.println("auth: "+response.parseAsString());
 			return response.parseAsString();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -92,6 +91,8 @@ public class google_post {
 		}
 		
 	}
+	
+
 
 	/**TODO - does not work
 	 * 
@@ -108,19 +109,33 @@ public class google_post {
 		System.out.println("check calID");
 		try {
 			hr = Global.HRF.buildGetRequest(
-					new GenericUrl(BASE_CAL+GET+"/abc"+
+					new GenericUrl(BASE_CAL+LIST+
 					"?key="+secret.API_KEY));
 			hr.setHeaders(headers);
 			response = hr.execute();
 			output = response.parseAsString();
+			//System.out.println(output);
+			Gson gson = new Gson();
+			JsCalendarList cl = gson.fromJson(output, JsCalendarList.class);
+			for (JsCalendar cal: cl.items){
+				
+				if(cal.summary.equals(CAL_NAME)){
+					return cal.id;
+				}
+			}
+	        
+			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			// 
 			e.printStackTrace();
 			return e.getMessage();
+		} catch (Exception e) {
+			System.out.println("ERROR======"+e.getMessage());
+			e.printStackTrace();
 		}
 		
-		System.out.println("calID result: "+output);
-		return output;
+			
+		return null;
 	}
 	
 	private String createCal(String summary){
@@ -130,10 +145,9 @@ public class google_post {
 		HttpResponse response;
 		String output;
 		HashMap<String,String> hm = new HashMap<String,String>();
-		hm.put("summary", "core");
+		hm.put("summary", CAL_NAME);
 		JsonHttpContent update = new JsonHttpContent(Global.JF, 
 				hm);
-		//{"summary":"core"}
 		
 		System.out.println("update to string:"+update+"\n\n---");
 		try {
@@ -145,23 +159,23 @@ public class google_post {
 			
 			System.out.println("encoding: " + hr.getContent().getType());
 			response = hr.execute();
-			
 			output = response.parseAsString();
 			
+			//System.out.println(output);
+			Gson gson = new Gson();
+			JsCalendar c = gson.fromJson(output, JsCalendar.class);
+			return c.id;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-			return e.getMessage();
+			return null;
 		}
-		System.out.println(output);
 		
-		return output;
 	}
 	
 	
-	private String insertEvents(String calId,ArrayList<HashMap<String,Object>> events){
+	private String insertEvents(String calId,ArrayList<JsEvent> events){
 
-		for(HashMap<String,Object> ev : events ){
+		for(JsEvent ev : events ){
 			insertEvent(calId,ev);
 		}
 		return null;
@@ -172,33 +186,23 @@ public class google_post {
 	 * @param event
 	 * @return
 	 */
-	private String insertEvent(String calId,Object event){
+	private String insertEvent(String calId,JsEvent event){
 		HttpRequest hr;
 		HttpResponse response;
 		String output;
 		
 		JsonHttpContent update = new JsonHttpContent(Global.JF, 
-				event);
+				event.toJSON());
 		
 		System.out.println("update to string:\n");
 		try {
 			update.writeTo(System.out);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		System.out.println("\n\n---");
-		/*
-		try {
-			hr = Global.HRF.buildPostRequest(new GenericUrl(BASE_CAL+GET+
+		
+			hr = Global.HRF.buildPostRequest(new GenericUrl(BASE_CAL+GET+"/"+calId+"/events"+
 					"?key="+secret.API_KEY),
 					update);
-
 			hr.setHeaders(headers);
-			
-			System.out.println("encoding: " + hr.getContent().getType());
 			response = hr.execute();
-			
 			output = response.parseAsString();
 			
 		} catch (IOException e) {
@@ -207,7 +211,7 @@ public class google_post {
 			return e.getMessage();
 		}
 		System.out.println(output);
-		*/
 		return null;
 	}
 }
+

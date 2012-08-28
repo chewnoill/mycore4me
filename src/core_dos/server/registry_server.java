@@ -2,7 +2,9 @@ package core_dos.server;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
 
 import com.google.api.client.googleapis.auth.clientlogin.ClientLogin;
@@ -12,6 +14,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.server.spi.response.UnauthorizedException;
+import com.google.gson.Gson;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
@@ -64,13 +67,18 @@ public class registry_server extends RemoteServiceServlet implements register_us
 			//SimpleDateFormat rfc = new SimpleDateFormat("yyyy-MM-ddTHH:mm:ssZ");
 			
 			
-			core_post post = new core_post(user,password);
-			
+			core_post c_post = new core_post(user,password);
+			ArrayList<HashMap<String, Object>> no_events = new ArrayList<HashMap<String, Object>>();
 			String content = "<br>\n";
 			//String content ="";
 			google_post g_post = new google_post();
-			g_post.post(access_token,post.getEvents());
-		
+			g_post.post(access_token,c_post.getEvents());
+			/*
+			String test = "{\"kind\":\"kind\",\"summary\":\"456\",\"somecrap\":\"555\"}";
+			Gson gson = new Gson();
+			JsCalendarList cl = gson.fromJson(test, JsCalendarList.class);
+	        System.out.println("----"+cl.kind);
+	        */
 			return "Hello, " + user + "!<br><br>I am running " + serverInfo
 					+ ":"+content+":";
 	}
