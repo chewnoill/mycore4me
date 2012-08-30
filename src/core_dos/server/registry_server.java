@@ -22,6 +22,7 @@ import com.google.api.services.calendar.Calendar;
 import core_dos.client.GreetingService;
 import core_dos.client.register_user;
 import core_dos.shared.FieldVerifier;
+import core_dos.shared.JsEventList;
 
 @SuppressWarnings("serial")
 public class registry_server extends RemoteServiceServlet implements register_user {
@@ -32,30 +33,26 @@ public class registry_server extends RemoteServiceServlet implements register_us
 	* @param html the html string to escape
 	* @return the escaped string
 	*/
-	private String escapeHtml(String html) {
-	if (html == null) {
-		return null;
-	}
 	
-	return html.replaceAll("&", "&amp;").replaceAll("<", "&lt;")
-			.replaceAll(">", "&gt;");
+	private String access_token;
+	private core_post c_post = null;
+	private google_post g_post = new google_post();
+	
+	private String escapeHtml(String html) {
+		if (html == null) {
+			return null;
+		}
+		
+		return html.replaceAll("&", "&amp;").replaceAll("<", "&lt;")
+				.replaceAll(">", "&gt;");
 	}
 	
 	@Override
-	public String register(String user, 
-			String password,
-			String access_token)
+	public String register_coreauth(String user, 
+			String password)
 			throws IllegalArgumentException {
 		
-			
-			// Verify that the input is valid. 
-			if (!FieldVerifier.isValidName(user)) {
-				// If the input is not valid, throw an IllegalArgumentException back to
-				// the client.
-				
-				throw new IllegalArgumentException(
-						"Name must be at least 4 characters long");
-			}
+
 			
 			String serverInfo = getServletContext().getServerInfo();
 			String userAgent = getThreadLocalRequest().getHeader("User-Agent");
@@ -71,16 +68,22 @@ public class registry_server extends RemoteServiceServlet implements register_us
 			ArrayList<HashMap<String, Object>> no_events = new ArrayList<HashMap<String, Object>>();
 			String content = "<br>\n";
 			//String content ="";
-			google_post g_post = new google_post();
-			g_post.post(access_token,c_post.getEvents());
-			/*
-			String test = "{\"kind\":\"kind\",\"summary\":\"456\",\"somecrap\":\"555\"}";
-			Gson gson = new Gson();
-			JsCalendarList cl = gson.fromJson(test, JsCalendarList.class);
-	        System.out.println("----"+cl.kind);
-	        */
-			return "Hello, " + user + "!<br><br>I am running " + serverInfo
-					+ ":"+content+":";
+			
+			JsEventList el = new JsEventList();
+			el.events = c_post.getEvents();
+			return el.toJson();
+			
+	}
+
+	@Override
+	public String register_googleauth(String access_token) {
+		this.access_token = access_token;
+		return g_post.checkToken(access_token);
+	}
+	
+	public String post_to_google(){
+		
+		return g_post.post(c_post.getEvents());
 	}
 
 }

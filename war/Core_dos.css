@@ -5,7 +5,7 @@
 h1 {
   font-size: 2em;
   font-weight: bold;
-  color: #777777;
+  color: black;
   margin: 40px 0px 70px;
   text-align: center;
 }
@@ -31,4 +31,49 @@ h1 {
 /** Set ids using widget.getElement().setId("idOfElement") */
 #closeButton {
   margin: 15px 6px 6px;
+}
+
+.event_table {
+	margin-left:auto;
+	margin-right:auto;
+}
+
+.box_view {
+     -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -khtml-border-radius: 10px;
+    border-radius: 10px;
+      
+	border: solid 2px;
+	border-color: #e0f005 #636300 #303000 #e0f005; 
+    background-color:#e0f005;
+    
+    min-width:390px;
+    
+    
+}
+.event_text {
+	min-width : 600px;
+}
+
+
+
+.background {
+	background-color:black;
+}
+
+.help_about {
+	  -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -khtml-border-radius: 10px;
+    border-radius: 10px;
+    margin:20px;
+    border: solid 2px;
+	border-color: #e0f005 #636300 #636300 #e0f005; 
+    background-color:#e0f005;
+    color:black;
+    
+	position:absolute;
+	bottom:0px;
+	right:0px;
 }

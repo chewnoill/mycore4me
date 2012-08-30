@@ -12,11 +12,11 @@
     <!-- Consider inlining CSS to reduce the number of requested files -->
     <!--                                                               -->
     <link type="text/css" rel="stylesheet" href="Core_dos.css">
-
+	<script type="text/javascript" language="javascript" src="mustashe.js"></script>
     <!--                                           -->
     <!-- Any title is fine                         -->
     <!--                                           -->
-    <title>Web Application Starter Project</title>
+    <title>Core Dos</title>
     
     <!--                                           -->
     <!-- This script loads your compiled module.   -->
@@ -24,6 +24,7 @@
     <!-- be added before this line.                -->
     <!--                                           -->
     <script type="text/javascript" language="javascript" src="core_dos/core_dos.nocache.js"></script>
+    
   </head>
 
   <!--                                           -->
@@ -31,7 +32,7 @@
   <!-- you can leave the body empty if you want  -->
   <!-- to create a completely dynamic UI.        -->
   <!--                                           -->
-  <body>
+  <body class="background">
 
     <!-- OPTIONAL: include this if you want history support -->
     <iframe src="javascript:''" id="__gwt_historyFrame" tabIndex='-1' style="position:absolute;width:0;height:0;border:0"></iframe>
@@ -44,20 +45,26 @@
       </div>
     </noscript>
 
-    <h1>Web Application Starter Project</h1>
+    
+    
 
-    <table align="center">
+    <table align="center" class="box_view" id="credentials">
       <tr>
-        <td colspan="2" style="font-weight:bold;">Please enter your name:</td>        
+        <td colspan="3" style="font-weight:bold;"><h1>Core Dos</h1><br>Please enter your name:</td>        
       </tr>
-      <tr>
+      <tr >
         <td id="usernameContainer"></td>
         <td id="passwordContainer"></td>
-        <td id="sendButtonContainer"></td>
+      </tr><tr>
+        <td id="sendButtonContainer"></td><td id="googleCheckContainer"></td>
       </tr>
       <tr>
         <td colspan="2" style="color:red;" id="errorLabelContainer"></td>
       </tr>
+
     </table>
+    
+    <table id="main_table" class="event_table" ></table>
+    <div class="help_about"><img src="img/medi_mouse48x48.png"></div>
   </body>
 </html>

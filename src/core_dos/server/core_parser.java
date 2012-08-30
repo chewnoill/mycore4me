@@ -10,6 +10,8 @@ import java.util.Locale;
 
 import java.util.HashMap;
 
+import core_dos.shared.JsEvent;
+
 public class core_parser {
 	private static final String BASE_SITE = "https://core.meditech.com"; 
 	static final int MILLIS_IN_DAY = 1000 * 60 * 60 * 24;

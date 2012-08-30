@@ -1,4 +1,4 @@
-package core_dos.server;
+package core_dos.shared;
 
 import com.google.gwt.core.client.JavaScriptObject;
 

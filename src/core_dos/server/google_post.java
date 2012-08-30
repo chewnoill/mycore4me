@@ -27,6 +27,9 @@ import com.google.gson.JsonObject;
 import com.google.gwt.core.client.JsArray;
 
 import core_dos.shared.FieldVerifier;
+import core_dos.shared.JsCalendar;
+import core_dos.shared.JsCalendarList;
+import core_dos.shared.JsEvent;
 import core_dos.shared.secret;
 
 public class google_post {
@@ -39,12 +42,13 @@ public class google_post {
 	static String LIST = "/users/me/calendarList";
 	private HttpHeaders headers;
 	private String cal_id;
+	private String access_token = null;
 	public google_post(){
 		headers = new HttpHeaders();
 	}
 	
-	public String post(String access_token, 
-			ArrayList<JsEvent> events){
+	public String post(ArrayList<JsEvent> events){
+		if(access_token==null){return "";}
 		String auth = checkToken(access_token);
 		cal_id = findCalendar(CAL_NAME);
 		//if calendar not found
@@ -68,7 +72,8 @@ public class google_post {
 		String results = insertEvents(cal_id,events);
 		return results;
 	}
-	private String checkToken(String access_token){
+	public String checkToken(String access_token){
+		this.access_token = access_token;
 		headers.set("Content-Type", "application/json");                  
 		headers.set("Authorization","Bearer "+access_token);
 		
@@ -86,6 +91,7 @@ public class google_post {
 			response = hr.execute();
 			return response.parseAsString();
 		} catch (IOException e) {
+			this.access_token = null;
 			e.printStackTrace();
 			return e.getMessage();
 		}
@@ -116,6 +122,7 @@ public class google_post {
 			output = response.parseAsString();
 			//System.out.println(output);
 			Gson gson = new Gson();
+			
 			JsCalendarList cl = gson.fromJson(output, JsCalendarList.class);
 			for (JsCalendar cal: cl.items){
 				
@@ -191,8 +198,7 @@ public class google_post {
 		HttpResponse response;
 		String output;
 		
-		JsonHttpContent update = new JsonHttpContent(Global.JF, 
-				event.toJSON());
+		JsonHttpContent update = new JsonHttpContent(Global.JF,event.toJsonContent());
 		
 		System.out.println("update to string:\n");
 		try {

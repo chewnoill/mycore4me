@@ -1,6 +1,7 @@
-package core_dos.server;
+package core_dos.shared;
 
 import com.google.gson.JsonArray;
+
 
 public class JsCalendarList {
 	public JsCalendarList(){}

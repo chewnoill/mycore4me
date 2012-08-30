@@ -1,4 +1,4 @@
-package core_dos.server;
+package core_dos.shared;
 
 public class JsDate {
 		JsDate (String date, String dateTime){

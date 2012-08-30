@@ -41,6 +41,7 @@ import com.google.api.services.calendar.model.EventDateTime;
 
 
 import core_dos.shared.FieldVerifier;
+import core_dos.shared.JsEvent;
 import core_dos.shared.secret;
 import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.annotations.IdGeneratorStrategy;
@@ -54,21 +55,21 @@ public class core_post {
 	public static String SITE2= "https://core.meditech.com/signon.mthz";
 	private HttpHeaders headers;
 	private ArrayList<JsEvent> events;
+	private String username;
+	private String password;
+	
+	
 	public core_post(String username,String password){
 		String core_html = "";
-		try {
-			core_html = doSubmit(username,password);
-		} catch (UnauthorizedException e) {
-			// unauthorized
-			// alert user
-			
-		}
+		this.username = username;
+		this.password = password;
+		
 		
 		
 	}
 
-	public String doSubmit(String username,
-			String password) throws UnauthorizedException {		
+
+	public ArrayList<JsEvent> build_events() throws UnauthorizedException {		
 
 		try{
 			
@@ -147,11 +148,11 @@ public class core_post {
 			this.events = getEventsFromCal(calendar_page.get(4));
 			System.out.println("-----------------------------------\n");
 			
-			return file;
+			return this.events;
 			
 		} catch (IOException e) {
 			System.out.println(":::"+e.getMessage());
-			return "Network Error: "+e.getMessage();
+			return null;
 
 		} 
 		

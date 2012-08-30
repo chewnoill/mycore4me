@@ -1,6 +1,9 @@
 package core_dos.client;
 
 import core_dos.shared.FieldVerifier;
+import core_dos.shared.JsEvent;
+import core_dos.shared.JsEventList;
+import core_dos.shared.secret;
 
 
 import com.google.gwt.core.client.Callback;
@@ -17,6 +20,7 @@ import com.google.gwt.event.shared.SimpleEventBus;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Label;
@@ -48,6 +52,11 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 	private static final String API_KEY = core_dos.shared.secret.API_KEY;
 	private static final String APPLICATION_NAME = "Core Dos";
 	
+	final Button sendButton = new Button("Send");
+	final TextBox username = new TextBox();
+	final PasswordTextBox password = new PasswordTextBox();
+	final CheckBox googleCheckbox = new CheckBox();
+	
 	private String access_token;
 
 	/**
@@ -59,13 +68,23 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 
 		
 		
-		final Button sendButton = new Button("Send");
-		final TextBox username = new TextBox();
-		final PasswordTextBox password = new PasswordTextBox();
+		
+		googleCheckbox.setText("google");
+		googleCheckbox.addClickHandler(new ClickHandler(){
+
+			@Override
+			public void onClick(ClickEvent event) {
+				if(googleCheckbox.getValue()){
+					Core_dos.getAuth();
+				}
+				
+			}});
+		
 		
 		VerticalPanel panel = new VerticalPanel();
 	    panel.add(lbl);
 	    RootPanel.get().add(panel);
+	    
 	    
 		History.addValueChangeHandler(this);
 		History.fireCurrentHistoryState();
@@ -89,6 +108,9 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 		
 		RootPanel.get("sendButtonContainer").add(sendButton);
 		RootPanel.get("errorLabelContainer").add(errorLabel);
+		
+		RootPanel.get("googleCheckContainer").add(googleCheckbox);
+		
 
 		// Focus the cursor on the name field when the app loads
 		
@@ -155,7 +177,7 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 				sendButton.setEnabled(false);
 				textToServerLabel.setText(textToServer);
 				serverResponseLabel.setText("");
-				reg_service.register(user,
+				reg_service.register_coreauth(user,
 						pass,
 						Core_dos.this.access_token,
 						new AsyncCallback<String>() {
@@ -192,8 +214,60 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 	public void onValueChange(ValueChangeEvent event) {
 		lbl.setText("The current history token is: " + event.getValue());
 		this.fragment = (String) event.getValue();
-		int stoken = this.fragment.indexOf("access_token=")+"access_token=".length();
-		int etoken = this.fragment.indexOf("&",stoken);
-		this.access_token = this.fragment.substring(stoken, etoken);
+		int stoken = this.fragment.indexOf("access_token=");
+		if(stoken==-1){
+			//load google auth
+			
+			
+		}else {
+			JsEvent ev = new JsEvent();
+			ev.summary = "some crap";
+			ev.location = "some where";
+			ev.start.date = "start date";
+			ev.end.date = "end date";
+			
+			render(ev.getLayout(),ev.toJson());
+			
+			stoken+="access_token=".length();
+			int etoken = this.fragment.indexOf("&",stoken);
+			this.access_token = this.fragment.substring(stoken, etoken);
+			reg_service.register_googleauth(access_token,new AsyncCallback<String>() {
+
+				@Override
+				public void onFailure(Throwable caught) {
+					Core_dos.this.googleCheckbox.setValue(false);
+					
+				}
+
+				@Override
+				public void onSuccess(String result) {
+					// TODO Auto-generated method stub
+					
+				}});
+		}
+		
 	}
+	
+	private static void getAuth(){
+		String site = "https://accounts.google.com/o/oauth2/auth?";
+		String type = "response_type=token&";
+		String auth = "client_id="+secret.CLIENT_ID+"&";
+		String scope = "scope=https://www.googleapis.com/auth/calendar&";
+		String redirect = "redirect_uri="+secret.REDIRECT;
+		System.out.println("load auth");
+		loadPage(site+type+auth+scope+redirect);
+	}
+	private static native String loadPage(String url)/*-{
+		parent.location.replace(url);
+	}-*/;
+	
+	private native void render(String layout,String json)/*-{
+		var content = JSON.parse(json);
+		
+		var table = parent.document.getElementById("main_table");
+		var newevent = document.createElement("div");
+		var output = parent.Mustache.render(layout,content);
+		newevent.innerHTML=output;
+		table.appendChild(newevent);
+	}-*/;
 }
