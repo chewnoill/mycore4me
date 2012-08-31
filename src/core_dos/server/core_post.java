@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.ServerSocket;
 import java.net.URI;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -53,7 +54,8 @@ public class core_post {
 
 	public static String SITE = "https://core.meditech.com/core-coreWebHH.desktop.mthh";
 	public static String SITE2= "https://core.meditech.com/signon.mthz";
-	private HttpHeaders headers;
+	public static String BASE_SITE = "https://core.meditech.com";
+	private HttpHeaders headers = new HttpHeaders();
 	private ArrayList<JsEvent> events;
 	private String username;
 	private String password;
@@ -72,66 +74,82 @@ public class core_post {
 	public ArrayList<JsEvent> build_events() throws UnauthorizedException {		
 
 		try{
+			HttpRequest hr;
+			HttpResponse response;
+			String cookie;
 			
+			System.out.println("get new auth");
+			hr = Global.HRF.buildGetRequest(new GenericUrl(SITE));
 			
-			HttpRequest hr = Global.HRF.buildGetRequest(new GenericUrl(SITE));
-			HttpResponse response = hr.execute();
-			headers = hr.getHeaders();
-			//String sid = "xyz";
-			//headers.set("cookie", "sid="+sid+"; path=/, sourl=%2fcore%2dcoreWebHH%2edesktop%2emthh; path=/");
-			
-			
-			String s="";
-			for (String key : response.getHeaders().keySet()) {
-				 s+=key+": "+ response.getHeaders().get(key)+"<br>";
-				 //+(String) response.getHeaders().get(key)+"\n";
-			}
-			
-			String cookie = headers.get("cookie")!=null?headers.get("cookie").toString():"";
-			
-			if(response.getHeaders().get("set-cookie")!=null){
-				cookie = response.getHeaders().get("set-cookie").toString();
-				int c_s = cookie.indexOf("[")+1;
-				int c_e = cookie.indexOf("]",c_s);
-				String c = cookie.substring(c_s, c_e);
-				cookie += ";"+c;
-					
-			}
-			
-			headers.put("cookie",cookie);
-			
-			//headers.put("sid", sid);
-			//System.out.println("cookies: "+s);
-			
-			
-			HashMap<String,String> hm = new HashMap<String,String>();
-			hm.put("userid", username);
-			hm.put("password",password);
-			UrlEncodedContent content = new UrlEncodedContent(hm);
-			
-			hr = Global.HRF.buildPostRequest(new GenericUrl(SITE2), content);
 			hr.setHeaders(headers);
-			s="";
-			for (String key : hr.getHeaders().keySet()) {
-				 s+=key+": "+ hr.getHeaders().get(key)+"\n";
-				 //+(String) response.getHeaders().get(key)+"\n";
-			}
 			response = hr.execute();
-			cookie = headers.get("cookie")!=null?headers.get("cookie").toString():"";
 			
+			String file = response.parseAsString();
+			System.out.println(file);
+			if(file.contains("<title>MEDITECH HCIS Signon</title>")){
+				
+				
+				
+				System.out.println("initial response:" +response.parseAsString());
+				headers = hr.getHeaders();
+				
+				//String sid = "xyz";
+				//headers.set("cookie", "sid="+sid+"; path=/, sourl=%2fcore%2dcoreWebHH%2edesktop%2emthh; path=/");
+				
+				
+				String s="";
+				for (String key : response.getHeaders().keySet()) {
+					 s+=key+": "+ response.getHeaders().get(key)+"<br>";
+					 //+(String) response.getHeaders().get(key)+"\n";
+				}
+				
+				cookie = headers.get("cookie")!=null?headers.get("cookie").toString():"";
+				
+				if(response.getHeaders().get("set-cookie")!=null){
+					cookie = response.getHeaders().get("set-cookie").toString();
+					int c_s = cookie.indexOf("[")+1;
+					int c_e = cookie.indexOf("]",c_s);
+					String c = cookie.substring(c_s, c_e);
+					cookie += ";"+c;
+						
+				}
+				
+				headers.put("cookie",cookie);
+				
+				//headers.put("sid", sid);
+				//System.out.println("cookies: "+s);
+				
+				
+				HashMap<String,String> hm = new HashMap<String,String>();
+				hm.put("userid", username);
+				hm.put("password",password);
+				UrlEncodedContent content = new UrlEncodedContent(hm);
+				
+				hr = Global.HRF.buildPostRequest(new GenericUrl(SITE2), content);
+				hr.setHeaders(headers);
+				s="";
+				for (String key : hr.getHeaders().keySet()) {
+					 s+=key+": "+ hr.getHeaders().get(key)+"\n";
+					 //+(String) response.getHeaders().get(key)+"\n";
+				}
+				response = hr.execute();
+				file = response.parseAsString();
+				cookie = headers.get("cookie")!=null?headers.get("cookie").toString():"";
+			}
 			if(response.getHeaders().get("set-cookie")!=null){
 				cookie = response.getHeaders().get("set-cookie").toString();
 				int c_s = cookie.indexOf("[")+1;
 				int c_e = cookie.indexOf("]",c_s);
 				String c = cookie.substring(c_s, c_e);
 				cookie += ";"+c;
+				headers.put("cookie",cookie);
 					
 			}
 			
-			headers.put("cookie",cookie);
 			
-			String file = "",next="";
-			file = response.parseAsString();
+			
+			
+			
 			
 			ArrayList<String> landing_page = core_parser.parseCoreViewHTML(file,"day");
 			if(landing_page==null){return null;}
@@ -151,6 +169,7 @@ public class core_post {
 			return this.events;
 			
 		} catch (IOException e) {
+			e.printStackTrace();
 			System.out.println(":::"+e.getMessage());
 			return null;
 
@@ -159,7 +178,17 @@ public class core_post {
 	}
 	
 	ArrayList<JsEvent> getEvents(){
-		return this.events;
+		if(events!=null&&events.size()>0){
+			return events;
+		}
+		try {
+			events = build_events();
+		} catch (UnauthorizedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println(e.getMessage());
+		}
+		return events; 
 	}
 	/**
 	 * 

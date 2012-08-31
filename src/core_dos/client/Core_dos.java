@@ -52,7 +52,9 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 	private static final String API_KEY = core_dos.shared.secret.API_KEY;
 	private static final String APPLICATION_NAME = "Core Dos";
 	
-	final Button sendButton = new Button("Send");
+	final Button sendCoreButton = new Button("Submit");
+	final Button sendGoogleButton = new Button("Send to Google");
+	
 	final TextBox username = new TextBox();
 	final PasswordTextBox password = new PasswordTextBox();
 	final CheckBox googleCheckbox = new CheckBox();
@@ -66,7 +68,25 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 		//CALENDAR.		        
 		//new GoogleApiRequestTransport(APPLICATION_NAME, API_KEY));
 
-		
+		sendGoogleButton.addClickHandler(new ClickHandler(){
+
+			@Override
+			public void onClick(ClickEvent event) {
+				reg_service.post_to_google(new AsyncCallback<String>() {
+
+				@Override
+				public void onFailure(Throwable caught) {
+					
+					
+				}
+
+				@Override
+				public void onSuccess(String result) {
+					
+					
+				}});
+				
+			}});
 		
 		
 		googleCheckbox.setText("google");
@@ -96,7 +116,7 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 		final Label errorLabel = new Label();
 
 		// We can add style names to widgets
-		sendButton.addStyleName("sendButton");
+		sendCoreButton.addStyleName("sendButton");
 
 		// Add the nameField and sendButton to the RootPanel
 		// Use RootPanel.get() to get the entire body element
@@ -106,7 +126,7 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 		RootPanel.get("passwordContainer").add(password);
 		
 		
-		RootPanel.get("sendButtonContainer").add(sendButton);
+		RootPanel.get("sendButtonContainer").add(sendCoreButton);
 		RootPanel.get("errorLabelContainer").add(errorLabel);
 		
 		RootPanel.get("googleCheckContainer").add(googleCheckbox);
@@ -140,8 +160,8 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 		closeButton.addClickHandler(new ClickHandler() {
 			public void onClick(ClickEvent event) {
 				dialogBox.hide();
-				sendButton.setEnabled(true);
-				sendButton.setFocus(true);
+				sendCoreButton.setEnabled(true);
+				sendCoreButton.setFocus(true);
 			}
 		});
 
@@ -174,12 +194,11 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 				
 				String textToServer = user+":"+pass;
 				// Then, we send the input to the server.
-				sendButton.setEnabled(false);
+				sendCoreButton.setEnabled(false);
 				textToServerLabel.setText(textToServer);
 				serverResponseLabel.setText("");
 				reg_service.register_coreauth(user,
 						pass,
-						Core_dos.this.access_token,
 						new AsyncCallback<String>() {
 							public void onFailure(Throwable caught) {
 								// Show the RPC error message to the user
@@ -196,6 +215,7 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 								dialogBox.setText("Remote Procedure Call");
 								serverResponseLabel
 										.removeStyleName("serverResponseLabelError");
+								Core_dos.this.renderCalUI(result);
 								serverResponseLabel.setHTML(result);
 								dialogBox.center();
 								closeButton.setFocus(true);
@@ -206,33 +226,32 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 
 		// Add a handler to send the name to the server
 		MyHandler handler = new MyHandler();
-		sendButton.addClickHandler(handler);
+		sendCoreButton.addClickHandler(handler);
 		username.addKeyUpHandler(handler);
 	}
 
 	@Override
 	public void onValueChange(ValueChangeEvent event) {
-		lbl.setText("The current history token is: " + event.getValue());
 		this.fragment = (String) event.getValue();
 		int stoken = this.fragment.indexOf("access_token=");
+		
+		String cal = "{\"events\":["+
+			"{\"summary\": \"BAR MONTH END \",\"location\": \"Remote Locations\","+
+				"\"start\": { \"date\": \"2012-09-01T09:00:00-0400\"},"+
+				"\"end\": { \"date\": \"2012-09-02T01:00:00-0400\"}}"+
+				"]}";
+		//renderCalUI(cal);
 		if(stoken==-1){
 			//load google auth
 			
-			
+
 		}else {
-			JsEvent ev = new JsEvent();
-			ev.summary = "some crap";
-			ev.location = "some where";
-			ev.start.date = "start date";
-			ev.end.date = "end date";
-			
-			render(ev.getLayout(),ev.toJson());
 			
 			stoken+="access_token=".length();
 			int etoken = this.fragment.indexOf("&",stoken);
 			this.access_token = this.fragment.substring(stoken, etoken);
 			reg_service.register_googleauth(access_token,new AsyncCallback<String>() {
-
+				
 				@Override
 				public void onFailure(Throwable caught) {
 					Core_dos.this.googleCheckbox.setValue(false);
@@ -241,11 +260,24 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 
 				@Override
 				public void onSuccess(String result) {
-					// TODO Auto-generated method stub
+					System.out.println("result: "+result+"---");
+					if(result.contains("400 OK")){
+						Core_dos.this.googleCheckbox.setValue(false);
+						RootPanel.get("googlePostContainer").remove(0);
+					}
+					else{
+						Core_dos.this.googleCheckbox.setValue(true);
+						RootPanel.get("googlePostContainer").add(sendGoogleButton);
+					}
 					
 				}});
 		}
 		
+	}
+	
+	private void renderCalUI(String events){
+		System.out.println("renderCalUi: "+events+"\n"+JsEventList.getLayout());
+		render(JsEventList.getLayout(),events);
 	}
 	
 	private static void getAuth(){
@@ -270,4 +302,6 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 		newevent.innerHTML=output;
 		table.appendChild(newevent);
 	}-*/;
+	
+	
 }

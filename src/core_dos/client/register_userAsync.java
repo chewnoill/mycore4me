@@ -11,4 +11,6 @@ public interface register_userAsync {
 
 	void register_googleauth(String access_token,
 			AsyncCallback<String> callback);
+	
+	void post_to_google(AsyncCallback<String> callback);
 }

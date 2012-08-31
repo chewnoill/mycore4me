@@ -192,23 +192,24 @@ public class core_parser {
 		String yyyy = getYYYY(event_view.get(2));
 		String summary = getSummary(event_view.get(3));
 		String location = getLocation(event_view.get(4));
-		
+		System.out.println(summary);
 		
 		ArrayList<Date> dates = getDates(event_view.get(4));
 		
 		SimpleDateFormat rfc3339 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ",Locale.US);
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd",Locale.US);
+		SimpleDateFormat human = new SimpleDateFormat("M/d H:mm",Locale.US);
 		if(dates.size()>1){
 			
 			for(int x=0;x<dates.size(); x+=2){
 				String start_date = rfc3339.format(dates.get(x));
 				String end_date =  rfc3339.format(dates.get(x+1));
+				String start_date_human = human.format(dates.get(x));
+				String end_date_human = human.format(dates.get(x+1));
 				
-				JsEvent ev = new JsEvent();
-				ev.summary=summary;
-				ev.location=location;
-				ev.start.dateTime = start_date;
-				ev.end.dateTime = end_date;
+				JsEvent ev = new JsEvent(summary,location,
+						"",start_date,start_date_human,
+						"",end_date,end_date_human);
 				events.add(ev);
 			}
 		}else if(dates.size()==1){
@@ -216,13 +217,12 @@ public class core_parser {
 			
 			String start_date = sdf.format(dates.get(0));
 			String end_date = sdf.format(dates.get(0).getTime()+MILLIS_IN_DAY);
+			String start_date_human = human.format(dates.get(0));
+			String end_date_human = human.format(dates.get(0).getTime()+MILLIS_IN_DAY);
 			
-			
-			JsEvent allDayEvent = new JsEvent();
-			allDayEvent.summary = summary;
-			allDayEvent.location = location;
-			allDayEvent.start.date = start_date;
-			allDayEvent.end.date = end_date;
+			JsEvent allDayEvent = new JsEvent(summary,location,
+					start_date,"",start_date_human,
+					end_date,"",end_date_human);
 			events.add(allDayEvent);
 			
 		}else {
@@ -239,16 +239,31 @@ public class core_parser {
 	 */
 	private static ArrayList<Date> getDates(String input){
 		ArrayList<Date> ret = new ArrayList<Date>();
-		String pat_tag_start = "<td class=\"style9\">";
+		String pat_tag_start_old = "<td class=\"style9\">";
+		String pat_tag_start_new = "<td class=\"style10\">";
 		String pat_tag_end   = "</td>";
 		DateFormat df = DateFormat.getDateInstance();
-		int next = input.indexOf(pat_tag_start);
-		while (next!=-1){
+		int next_old = input.indexOf(pat_tag_start_old);
+		int next_new = input.indexOf(pat_tag_start_new);
+		
+		System.out.println(input);
+		while (next_old!=-1||next_new!=-1){
+			String pat_tag_start = (next_old!=-1&&next_new==-1)||
+					(next_old!=-1&&next_old<next_new)?
+					pat_tag_start_old:
+					pat_tag_start_new;
+			
+			int next = 	(next_old!=-1&&next_new==-1)||
+					(next_old!=-1&&next_old<next_new)?
+					next_old:
+					next_new;
+			
 			next += pat_tag_start.length();
 			int end = input.indexOf(pat_tag_end,next);
 			//get when
 			String date = input.substring(next, end);
-			date.toUpperCase();
+			System.out.println(date);
+			
 			try {
 				SimpleDateFormat sdf;
 				int br = date.indexOf("<br>");
@@ -301,7 +316,10 @@ public class core_parser {
 			end = input.indexOf(pat_tag_end,next);
 			//input.subSequence(next, end);
 			
-			next = input.indexOf(pat_tag_start,end);
+			next_old = input.indexOf(pat_tag_start_old,end);
+			next_new = input.indexOf(pat_tag_start_new,end);
+			
+			
 		}
 		return ret;
 	}

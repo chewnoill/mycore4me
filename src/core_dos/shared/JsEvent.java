@@ -7,51 +7,49 @@ import com.google.api.client.http.json.JsonHttpContent;
 import core_dos.server.Global;
 
 public class JsEvent {
-	public String getLayout(){
-		return "<table class=\"box_view\"><tr><td colspan=\"2\">{{summary}}</td></tr>"+
-				"<tr><td colspan=\"2\">location: {{location}}</td></tr>"+
-				"<tr><td>start: {{start.date}} </td><td>end: {{end.date}}</td></tr>"+
-				"<tr><td colspan=\"2\">buttons</td></tr>"+
-				"</table>";
-	}
-			
-	
-	public JsEvent(){
-		this.start = new date();
-		this.end = new date();
-	}
-	public JsEvent(String summary,
-			String location,
-			date start,
-			date end){
-		this.summary = fix_string(summary);
-		this.location = fix_string(location);
-		this.start = start;
-		this.end = end;
-	}
-	
+	public JsEvent(){}
+	public String kind;
+	public String id;
 	public String summary;
 	public String location;
-	public date start;
-	public date end;
+	public String htmlLink;
+	public JsDate start;
+	public JsDate end;
 	public String description;
 	public String participants;
+	
+	
+	public JsEvent(String summary,
+			String location,
+			String startDate,
+			String startDateTime,
+			String startDateHuman,
+			String endDate,
+			String endDateTime,
+			String endDateHuman){
+		this.summary = fix_string(summary);
+		this.location = fix_string(location);
+		this.start = new JsDate(startDate,startDateTime,startDateHuman);
+		this.end = new JsDate(endDate,endDateTime,endDateHuman);
+	}
+	
+	
 	public HashMap<String,Object> toJsonContent(){
 		HashMap<String,Object> ret = new HashMap<String,Object>();
 		
 		ret.put("summary", fix_string(summary));
 		ret.put("location", fix_string(location));
-		ret.put("start", start.toJSON());
-		ret.put("end", end.toJSON());
+		ret.put("start", start.toJSONContent());
+		ret.put("end", end.toJSONContent());
 		return ret;
 	}
 	public String toJson(){
 		HashMap<String,Object> content = toJsonContent();
-		String ret = "{";
-		ret += "\"summary\": \""+summary+"\",";
-		ret += "\"location\": \""+location+"\",";
-		ret += "\"start\": { \"date\": \""+start.toString()+"\"},";
-		ret += "\"end\": { \"date\": \""+end.toString()+"\"}}";
+		String ret = "{"+
+				"\"summary\": \""+summary+"\","+
+				"\"location\": \""+location+"\","+
+				"\"start\": "+start.toJson()+","+
+				"\"end\": "+end.toJson()+"}";
 		System.out.println(ret);
 		return ret;
 	}
@@ -59,19 +57,20 @@ public class JsEvent {
 	@Override
 	public boolean equals(Object comp){
 		JsEvent that = (JsEvent) comp;
-		System.out.println(this.summary.equals(that.summary));
+		
 		System.out.println(this.location.equals(that.location));
-				
-		return this.summary.equals(that.summary) &&
-				this.location.equals(that.location) &&
-				this.start.date.equals(that.start.date) &&
-				this.start.dateTime.equals(that.start.dateTime) &&
-				this.end.date.equals(that.end.date) &&
-				this.end.dateTime.equals(that.end.dateTime);
-				
+		
+		boolean ret = this.summary.equals(that.summary) &&
+				this.start.equals(that.start) &&
+				this.end.equals(that.end);
+		//events do not require a location
+		//this.location.equals(that.location) &&
+		System.out.println(this.summary+"="+that.summary+":"+ret);
+		System.out.println("----"+this.toJson()+":"+that.toJson()+"----");
+		return ret;
 	}
 	static String fix_string(String input){
-		
+		if(input==null){return "";}
 		String ret = input.replaceAll("<br>", "");
 		ret = ret.replaceAll("&lt;", "<");
 		ret = ret.replaceAll("&gt;", ">");
@@ -79,52 +78,14 @@ public class JsEvent {
 		ret = ret.replaceAll("&amp;", "&");
 		return ret;
 	}
-	
-	public class date{
-		date(){}
-		public String toJson() {
-			HashMap<String,Object> content = toJsonContent();
-			String ret = "{";
-			for(String key:content.keySet()){
-				Object obj = content.get(key);
-				if (obj instanceof String){
-					ret+="\""+key+"\": \""+obj+"\",";
-				}
-				
-			}
-			return ret.substring(0,ret.length()-1)+"}";
-		}
-		public date (String date, String dateTime){
-			this.date = date;
-			this.dateTime = dateTime;
-		}
-		HashMap<String,String> toJSON(){
-			HashMap<String,String> ret = new HashMap<String,String>();
-			if(date.length()>0){
-				ret.put("date", date);
-			} else if (dateTime.length()>0){
-				ret.put("dateTime", dateTime);
-			}	
-			return ret;
-		}
-		public String getDateType(){
-			if(date.length()>0){
-				return "date";
-			} else if (dateTime.length()>0){
-				return  "dateTime";
-			}
-			return "";
-		}
-		
-		public String toString(){
-			if(date.length()>0){
-				return date;
-			} else if (dateTime.length()>0){
-				return  dateTime;
-			}
-			return "";
-		}
-		public String dateTime = "";
-		public String date = "";
+	public static String getLayout(){
+		return "<table class=\"box_view\"><tr><td colspan=\"2\">{{summary}}</td></tr>"+
+				"<tr><td colspan=\"2\">location: {{location}}</td></tr>"+
+				"<tr><td>start: {{start.dateHuman}} </td><td>end: {{end.dateHuman}}</td></tr>"+
+				"<tr><td colspan=\"2\">buttons</td></tr>"+
+				"</table>";
 	}
+			
+	
+	
 }

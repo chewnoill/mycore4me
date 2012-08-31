@@ -11,10 +11,11 @@ import java.security.NoSuchAlgorithmException;
 
 import javax.jdo.JDOHelper;
 import javax.jdo.PersistenceManagerFactory;
+import javax.net.ServerSocketFactory;
 
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonEncoding;
+import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.JsonGenerator;
 import com.google.api.client.json.JsonParser;
@@ -23,6 +24,7 @@ import com.google.api.client.json.gson.GsonFactory;
 public class Global {
 	public static final JsonFactory JF = new GsonFactory();
 	public static PersistenceManagerFactory PMF = JDOHelper.getPersistenceManagerFactory("transactions-optional");
+	
 	public static HttpRequestFactory HRF = (new NetHttpTransport()).createRequestFactory();
 	
 	public static String THIS_HOST = "127.0.0.1:8888/";

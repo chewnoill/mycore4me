@@ -30,6 +30,7 @@ import core_dos.shared.FieldVerifier;
 import core_dos.shared.JsCalendar;
 import core_dos.shared.JsCalendarList;
 import core_dos.shared.JsEvent;
+import core_dos.shared.JsEventList;
 import core_dos.shared.secret;
 
 public class google_post {
@@ -40,6 +41,8 @@ public class google_post {
 	//REQUIRES SCOPE: https://www.googleapis.com/auth/calendar
 	static String GET = "/calendars";
 	static String LIST = "/users/me/calendarList";
+	static String LIST_EVENTS = "/events";
+	
 	private HttpHeaders headers;
 	private String cal_id;
 	private String access_token = null;
@@ -93,6 +96,7 @@ public class google_post {
 		} catch (IOException e) {
 			this.access_token = null;
 			e.printStackTrace();
+			
 			return e.getMessage();
 		}
 		
@@ -181,10 +185,47 @@ public class google_post {
 	
 	
 	private String insertEvents(String calId,ArrayList<JsEvent> events){
-
-		for(JsEvent ev : events ){
-			insertEvent(calId,ev);
+		//only insert new events.
+		//first get list of events already in gcal
+		HttpRequest hr;
+		try {
+			hr = Global.HRF.buildGetRequest(
+					new GenericUrl(BASE_CAL+GET+"/"+calId+LIST_EVENTS+
+					"?timeZone=-0400&key="+secret.API_KEY));
+	
+		hr.setHeaders(headers);
+		HttpResponse response = hr.execute();
+		String output = response.parseAsString();
+		System.out.println(output);
+		Gson gson = new Gson();
+		
+		
+		JsEventList cl = gson.fromJson(output, JsEventList.class);
+		ArrayList<JsEvent> found = new ArrayList<JsEvent>();
+		if(cl.items!=null){
+			for (JsEvent f : cl.items){
+				found.add(f);
+			}
 		}
+		for(JsEvent ev : events ){
+			if(found.contains(ev)){
+				System.out.println("found it");
+			} else {
+				System.out.println("new");
+				insertEvent(calId,ev);
+			}
+			
+			
+		}
+		
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		
+		
 		return null;
 	}
 	/**
