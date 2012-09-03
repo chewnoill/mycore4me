@@ -1,1 +1,9 @@
 src/core_dos/shared/secret.java
+.*
+gwt-unitCache/
+war/coredos
+war/core_dos
+war/WEB-INF/classes/
+war/WEB-INF/deploy
+war/WEB-INF/lib
+war/WEB-INF/appengine-generated
