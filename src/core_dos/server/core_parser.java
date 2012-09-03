@@ -196,7 +196,7 @@ public class core_parser {
 		
 		ArrayList<Date> dates = getDates(event_view.get(4));
 		
-		SimpleDateFormat rfc3339 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ",Locale.US);
+		SimpleDateFormat rfc3339 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss-500",Locale.US);
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd",Locale.US);
 		SimpleDateFormat human = new SimpleDateFormat("M/d H:mm",Locale.US);
 		if(dates.size()>1){
