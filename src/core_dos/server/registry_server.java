@@ -18,7 +18,6 @@ import com.google.gson.Gson;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONArray;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
-import com.google.api.services.calendar.Calendar;
 import core_dos.client.GreetingService;
 import core_dos.client.register_user;
 import core_dos.shared.FieldVerifier;
@@ -53,26 +52,28 @@ public class registry_server extends RemoteServiceServlet implements register_us
 			throws IllegalArgumentException {
 		
 
-			System.out.println("1");
+			
 			String serverInfo = getServletContext().getServerInfo();
 			String userAgent = getThreadLocalRequest().getHeader("User-Agent");
-			System.out.println("1");
 			// Escape data from the client to avoid cross-site script vulnerabilities.
 			user = escapeHtml(user);
 			userAgent = escapeHtml(userAgent);
-			System.out.println("1");
 			//SimpleDateFormat rfc = new SimpleDateFormat("yyyy-MM-ddTHH:mm:ssZ");
 			
 			
 			c_post = new core_post(user,password);
-			System.out.println("1");
-			ArrayList<HashMap<String, Object>> no_events = new ArrayList<HashMap<String, Object>>();
-			String content = "<br>\n";
-			//String content ="";
-			System.out.println("1");
-			JsEventList el = new JsEventList();
-			el.events = c_post.getEvents();
-			return el.toJson();
+			
+			try {
+				JsEventList el = c_post.getEvents();
+				return el.toJson();
+				//return c_post.build_events();
+			} catch (UnauthorizedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return new JsEventList("Unauthorized","please login again").toJson();
+			}
+			
+			
 			
 	}
 
@@ -87,7 +88,13 @@ public class registry_server extends RemoteServiceServlet implements register_us
 		if(g_post == null){
 			g_post = new google_post();
 		}
-		return g_post.post(c_post.getEvents());
+		try {
+			return g_post.post(c_post.getEvents());
+		} catch (UnauthorizedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 }

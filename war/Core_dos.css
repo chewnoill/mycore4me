@@ -6,7 +6,6 @@ h1 {
   font-size: 2em;
   font-weight: bold;
   color: black;
-  margin: 40px 0px 70px;
   text-align: center;
 }
 
@@ -51,6 +50,8 @@ h1 {
     min-width:390px;
     
     
+    
+    
 }
 .event_text {
 	min-width : 600px;
@@ -62,7 +63,7 @@ h1 {
 	background-color:black;
 }
 
-.help_about {
+.help_about_mini {
 	  -moz-border-radius: 10px;
     -webkit-border-radius: 10px;
     -khtml-border-radius: 10px;
@@ -73,7 +74,21 @@ h1 {
     background-color:#e0f005;
     color:black;
     
-	position:absolute;
-	bottom:0px;
-	right:0px;
+	position:fixed;
+	bottom: 0%;
+  	right: 0%;
 }
+.help_about_big {
+	margin:20px;
+    border: solid 2px;
+	//border-color: #e0f005 #636300 #636300 #e0f005; 
+    background-color:white;
+    color:black;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    margin-top: -200px;
+    margin-left: -150px;
+  	height:460px;
+  	width:300px
+  	

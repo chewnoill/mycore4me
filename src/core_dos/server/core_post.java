@@ -20,6 +20,7 @@ import com.google.api.server.spi.response.UnauthorizedException;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpContent;
 
+import com.google.api.client.http.HttpMethod;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpResponse;
@@ -34,15 +35,13 @@ import com.google.api.client.http.HttpHeaders;
 import com.google.gwt.http.client.URL;
 
 import com.google.api.client.json.jackson.JacksonFactory;
-import com.google.api.services.calendar.Calendar;
-import com.google.api.services.calendar.Calendar.Events;
-import com.google.api.services.calendar.model.Event;
-import com.google.api.services.calendar.model.EventDateTime;
+
 
 
 
 import core_dos.shared.FieldVerifier;
 import core_dos.shared.JsEvent;
+import core_dos.shared.JsEventList;
 import core_dos.shared.secret;
 import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.annotations.IdGeneratorStrategy;
@@ -55,10 +54,11 @@ public class core_post {
 	public static String SITE = "https://core.meditech.com/core-coreWebHH.desktop.mthh";
 	public static String SITE2= "https://core.meditech.com/signon.mthz";
 	public static String BASE_SITE = "https://core.meditech.com";
-	private HttpHeaders headers = new HttpHeaders();
-	private ArrayList<JsEvent> events;
+	private HttpHeaders headers;
+	private JsEventList events;
 	private String username;
 	private String password;
+	private cookie_monster cm = new cookie_monster();
 	
 	
 	public core_post(String username,String password){
@@ -71,53 +71,42 @@ public class core_post {
 	}
 
 
-	public ArrayList<JsEvent> build_events() throws UnauthorizedException {		
-
+	public JsEventList build_events() throws UnauthorizedException {		
+		String file = "";
 		try{
 			HttpRequest hr;
 			HttpResponse response;
 			String cookie;
+			this.headers = new HttpHeaders();
+			ArrayList<JsEvent> events;
 			
 			System.out.println("get new auth");
 			hr = Global.HRF.buildGetRequest(new GenericUrl(SITE));
-			
-			hr.setHeaders(headers);
+			hr.setHeaders(this.headers);
 			response = hr.execute();
 			
-			String file = response.parseAsString();
+			file = response.parseAsString();
+			
 			System.out.println(file);
+			
 			if(file.contains("<title>MEDITECH HCIS Signon</title>")){
 				
-				
-				
-				System.out.println("initial response:" +response.parseAsString());
-				headers = hr.getHeaders();
-				
-				//String sid = "xyz";
-				//headers.set("cookie", "sid="+sid+"; path=/, sourl=%2fcore%2dcoreWebHH%2edesktop%2emthh; path=/");
-				
-				
-				String s="";
-				for (String key : response.getHeaders().keySet()) {
-					 s+=key+": "+ response.getHeaders().get(key)+"<br>";
-					 //+(String) response.getHeaders().get(key)+"\n";
-				}
-				
-				cookie = headers.get("cookie")!=null?headers.get("cookie").toString():"";
-				
+				HttpHeaders headers = response.getHeaders();
+				String cookie1 = headers.get("cookie")!=null?headers.get("cookie").toString():"";
+				cookie1 = cm.StoS(cookie1);
 				if(response.getHeaders().get("set-cookie")!=null){
-					cookie = response.getHeaders().get("set-cookie").toString();
-					int c_s = cookie.indexOf("[")+1;
-					int c_e = cookie.indexOf("]",c_s);
-					String c = cookie.substring(c_s, c_e);
-					cookie += ";"+c;
+					String cookie2 = response.getHeaders().get("set-cookie").toString();
+		
+					cookie1 = cm.StoS(cookie2);
 						
 				}
+				cookie = cookie1;
 				
 				headers.put("cookie",cookie);
-				
+				//file = "cookies1: "+cookie;
+				//System.out.println(file);
 				//headers.put("sid", sid);
-				//System.out.println("cookies: "+s);
+				System.out.println("cookies: "+cookie);
 				
 				
 				HashMap<String,String> hm = new HashMap<String,String>();
@@ -125,31 +114,38 @@ public class core_post {
 				hm.put("password",password);
 				UrlEncodedContent content = new UrlEncodedContent(hm);
 				
-				hr = Global.HRF.buildPostRequest(new GenericUrl(SITE2), content);
+				//hr = Global.HRF.buildPostRequest(new GenericUrl(SITE2), content);
+				hr.setMethod(HttpMethod.POST);
+				hr.setContent(content);
+				hr.setUrl(new GenericUrl(SITE2));
 				hr.setHeaders(headers);
-				s="";
-				for (String key : hr.getHeaders().keySet()) {
-					 s+=key+": "+ hr.getHeaders().get(key)+"\n";
-					 //+(String) response.getHeaders().get(key)+"\n";
-				}
+				
+				cookie1+="\n::::request::::\n";
+				
+				
+				file += cookie1;
+				System.out.println("-----------------------------------1\n"+file);
 				response = hr.execute();
-				file = response.parseAsString();
-				cookie = headers.get("cookie")!=null?headers.get("cookie").toString():"";
-			}
-			if(response.getHeaders().get("set-cookie")!=null){
-				cookie = response.getHeaders().get("set-cookie").toString();
-				int c_s = cookie.indexOf("[")+1;
-				int c_e = cookie.indexOf("]",c_s);
-				String c = cookie.substring(c_s, c_e);
-				cookie += ";"+c;
-				headers.put("cookie",cookie);
+				
+				if(response.getHeaders().get("set-cookie")!=null){
+					String cookie2 = response.getHeaders().get("set-cookie").toString();
+		
+					cookie1 = cm.StoS(cookie2);
 					
+				}
+				cookie = cookie1;
+				headers.put("cookie",cookie);
+				System.out.println("-----------------------------------2\n");
+				file = response.parseAsString();
+				
+				if(file.contains("Invalid username/password, try again.")){
+					throw new UnauthorizedException("username/password rejected");
+				}
+				
+				this.headers=headers;
+			
+				
 			}
-			
-			
-			
-			
-			
 			
 			ArrayList<String> landing_page = core_parser.parseCoreViewHTML(file,"day");
 			if(landing_page==null){return null;}
@@ -158,36 +154,31 @@ public class core_post {
 			hr = Global.HRF.buildGetRequest(new GenericUrl(cal_link));
 			hr.setHeaders(headers);
 			response = hr.execute();
-			
+			System.out.println("-----------------------------------3\n");
 			file = response.parseAsString();
 			
 			ArrayList<String> calendar_page = core_parser.parseCoreViewHTML(file,"cal");
 			
 			this.events = getEventsFromCal(calendar_page.get(4));
-			System.out.println("-----------------------------------\n");
+			System.out.println("-----------------------------------4\n");
 			
 			return this.events;
 			
+			//return file;
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.out.println(":::"+e.getMessage());
-			return null;
+			this.events = new JsEventList("Error",e.getMessage());
+			return  this.events;
 
 		} 
 		
 	}
 	
-	ArrayList<JsEvent> getEvents(){
-		if(events!=null&&events.size()>0){
-			return events;
-		}
-		try {
-			events = build_events();
-		} catch (UnauthorizedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			System.out.println(e.getMessage());
-		}
+	JsEventList getEvents() throws UnauthorizedException{
+		
+		events = build_events();
+		
 		return events; 
 	}
 	/**
@@ -195,7 +186,7 @@ public class core_post {
 	 * @param cal_table
 	 * @throws IOException 
 	 */
-	private ArrayList<JsEvent> getEventsFromCal(String cal_table) throws IOException{
+	private JsEventList getEventsFromCal(String cal_table) throws IOException{
 		ArrayList<String> day_view_links = core_parser.parseEventFromCal(cal_table);
 		ArrayList<String> event_view_links = new ArrayList<String>();
 		ArrayList<JsEvent> ret = new ArrayList<JsEvent>();
@@ -243,10 +234,39 @@ public class core_post {
 			}
 			
 		}
-		return ret;
+		
+		return new JsEventList(ret);
 		
 	}
 	
+	
+}
+
+class cookie_monster{
+	HashMap<String,String> cookies = new HashMap<String,String>();
+	void parseFromString(String cookies){
+		String seg_token = "[;,\\[\\]]";
+		String value_token = "=";
+		String[] expressions = cookies.split(seg_token);
+		for(String ex: expressions){
+			String[] value = ex.split(value_token);
+			if(value.length>1){
+				this.cookies.put(value[0],value[1]);
+			}
+		}
+		
+	}
+	public String toString(){
+		String ret = "";
+		for(String key: cookies.keySet()){
+			ret += key + "=" + cookies.get(key) + ";";
+		}
+		return ret;
+	}
+	public String StoS(String values){
+		this.parseFromString(values);
+		return this.toString();
+	}
 	
 }
 

@@ -215,10 +215,14 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 								dialogBox.setText("Remote Procedure Call");
 								serverResponseLabel
 										.removeStyleName("serverResponseLabelError");
-								Core_dos.this.renderCalUI(result);
-								serverResponseLabel.setHTML(result);
-								dialogBox.center();
-								closeButton.setFocus(true);
+								if(isError(result)){
+									serverResponseLabel.setHTML(getError_message(result));
+									dialogBox.center();
+									closeButton.setFocus(true);	
+								} else {
+									Core_dos.this.renderCalUI(result);
+								}
+								
 							}
 						});
 			}
@@ -257,7 +261,7 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 					Core_dos.this.googleCheckbox.setValue(false);
 					
 				}
-
+				
 				@Override
 				public void onSuccess(String result) {
 					System.out.println("result: "+result+"---");
@@ -278,6 +282,7 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 	private void renderCalUI(String events){
 		System.out.println("renderCalUi: "+events+"\n"+JsEventList.getLayout());
 		render(JsEventList.getLayout(),events);
+		
 	}
 	
 	private static void getAuth(){
@@ -292,13 +297,25 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 	private static native String loadPage(String url)/*-{
 		parent.location.replace(url);
 	}-*/;
+	private static native boolean isError(String json)/*-{
+		var obj = JSON.parse(json);
+		if(obj.error_id&&obj.error_id!=""){
+			return true;
+		} else {
+			return false;
+		}
+	}-*/;
+	private static native String getError_message(String json)/*-{
+		var obj = JSON.parse(json);
+		return obj.error_message;
+	}-*/;
 	
 	private native void render(String layout,String json)/*-{
 		var content = JSON.parse(json);
-		
 		var table = parent.document.getElementById("main_table");
 		var newevent = document.createElement("div");
 		var output = parent.Mustache.render(layout,content);
+		//return output
 		newevent.innerHTML=output;
 		table.appendChild(newevent);
 	}-*/;

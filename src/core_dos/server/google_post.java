@@ -19,7 +19,7 @@ import com.google.api.client.http.json.JsonHttpContent;
 import com.google.api.client.json.JsonGenerator;
 import com.google.api.client.json.JsonObjectParser;
 import com.google.api.client.json.JsonParser;
-import com.google.api.services.calendar.Calendar;
+
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -50,7 +50,7 @@ public class google_post {
 		headers = new HttpHeaders();
 	}
 	
-	public String post(ArrayList<JsEvent> events){
+	public String post(JsEventList jsEventList){
 		if(access_token==null){return "";}
 		String auth = checkToken(access_token);
 		cal_id = findCalendar(CAL_NAME);
@@ -72,7 +72,7 @@ public class google_post {
 		 *	}
 		 */
 		
-		String results = insertEvents(cal_id,events);
+		String results = insertEvents(cal_id,jsEventList);
 		return results;
 	}
 	public String checkToken(String access_token){
@@ -184,7 +184,7 @@ public class google_post {
 	}
 	
 	
-	private String insertEvents(String calId,ArrayList<JsEvent> events){
+	private String insertEvents(String calId,JsEventList jsEventList){
 		//only insert new events.
 		//first get list of events already in gcal
 		HttpRequest hr;
@@ -207,7 +207,8 @@ public class google_post {
 				found.add(f);
 			}
 		}
-		for(JsEvent ev : events ){
+		
+		for(JsEvent ev : jsEventList.events ){
 			if(found.contains(ev)){
 				System.out.println("found it");
 			} else {

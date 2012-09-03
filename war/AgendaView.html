@@ -1,0 +1,21 @@
+<html>
+<head>
+<link type="text/css" rel="stylesheet" href="AgendaView.css">
+<script type="text/javascript" language="javascript" src="mustashe.js"></script>
+
+
+</head>
+<body>
+<div id="content">
+<script>
+var json = {summary: "some event",location:"some location"};
+var template = "<table class=\"box_view\"><tr><td colspan=\"2\">{{summary}}</td></tr>"+
+				"</table>"
+var output = Mustache.render(template,json);
+document.write(output);
+</script>
+</div>
+
+
+</body>
+</html>
