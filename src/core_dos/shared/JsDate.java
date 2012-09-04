@@ -1,9 +1,14 @@
 package core_dos.shared;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 
 public class JsDate {
 	JsDate(){}
+	//private static SimpleDateFormat rfc3339 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ",Locale.US);
 	JsDate (String date, String dateTime){
 		this.date = date;
 		this.dateTime = dateTime;
@@ -11,25 +16,14 @@ public class JsDate {
 	public String dateTime="";
 	public String date="";
 	public String dateHuman = "";
-	public void fixDates(){
-		//remove colon from timezone
-		int bad = date.indexOf(":", date.length()-4);
-		if (bad!=-1){
-			date = date.substring(0,bad)+date.substring(bad+1);
-		}
-		bad = dateTime.indexOf(":", dateTime.length()-4);
-		if (bad!=-1){
-			dateTime = dateTime.substring(0,bad)+dateTime.substring(bad+1);
-		}
-	}
+	
 	@Override
 	public boolean equals(Object obj){
 		JsDate that = (JsDate) obj;
-		this.fixDates();
-		that.fixDates();
+		
 		System.out.println("this: "+this.toJson()+"\nthat: "+that.toJson());
-		return this.date.equals(that.date)&&
-				this.dateTime.equals(that.dateTime);
+		
+		return this.dateTime.equals(that.dateTime) && this.date.equals(that.date);
 		
 	}
 	public JsDate (String date, String dateTime, String dateHuman){

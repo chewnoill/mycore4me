@@ -68,25 +68,7 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 		//CALENDAR.		        
 		//new GoogleApiRequestTransport(APPLICATION_NAME, API_KEY));
 
-		sendGoogleButton.addClickHandler(new ClickHandler(){
-
-			@Override
-			public void onClick(ClickEvent event) {
-				reg_service.post_to_google(new AsyncCallback<String>() {
-
-				@Override
-				public void onFailure(Throwable caught) {
-					
-					
-				}
-
-				@Override
-				public void onSuccess(String result) {
-					
-					
-				}});
-				
-			}});
+		
 		
 		
 		googleCheckbox.setText("google");
@@ -220,6 +202,9 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 									dialogBox.center();
 									closeButton.setFocus(true);	
 								} else {
+									if(Core_dos.this.googleCheckbox.getValue()){
+										RootPanel.get("googlePostContainer").add(sendGoogleButton);
+									}
 									Core_dos.this.renderCalUI(result);
 								}
 								
@@ -227,7 +212,27 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 						});
 			}
 		}
+		sendGoogleButton.addClickHandler(new ClickHandler(){
 
+			@Override
+			public void onClick(ClickEvent event) {
+				reg_service.post_to_google(new AsyncCallback<String>() {
+
+				@Override
+				public void onFailure(Throwable caught) {
+					
+					
+				}
+
+				@Override
+				public void onSuccess(String result) {
+					serverResponseLabel.setHTML("Sent!");
+					dialogBox.center();
+					closeButton.setFocus(true);	
+					
+				}});
+				
+			}});
 		// Add a handler to send the name to the server
 		MyHandler handler = new MyHandler();
 		sendCoreButton.addClickHandler(handler);
@@ -271,7 +276,7 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 					}
 					else{
 						Core_dos.this.googleCheckbox.setValue(true);
-						RootPanel.get("googlePostContainer").add(sendGoogleButton);
+						
 					}
 					
 				}});

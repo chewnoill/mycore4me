@@ -196,7 +196,7 @@ public class core_parser {
 		
 		ArrayList<Date> dates = getDates(event_view.get(4));
 		
-		SimpleDateFormat rfc3339 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss-500",Locale.US);
+		SimpleDateFormat rfc3339 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss-04:00",Locale.US);
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd",Locale.US);
 		SimpleDateFormat human = new SimpleDateFormat("M/d H:mm",Locale.US);
 		if(dates.size()>1){
@@ -206,7 +206,7 @@ public class core_parser {
 				String end_date =  rfc3339.format(dates.get(x+1));
 				String start_date_human = human.format(dates.get(x));
 				String end_date_human = human.format(dates.get(x+1));
-				
+				System.out.println(start_date+"-"+end_date);
 				JsEvent ev = new JsEvent(summary,location,
 						"",start_date,start_date_human,
 						"",end_date,end_date_human);
