@@ -1,10 +1,9 @@
 mycore4me
 =========
 
-A first step to integrating Core calendar information with google calendar.  What this can do now is allow users to import their core calendar into any google account's calendar.  
+A first step to integrating Core calendar information with google calendar.  What this can do now is allow users to import their core calendar into any google account's calendar.  Simple user interface to receive credentials from the user, send those to a backend java servlet which pulls down event information from Core and then push those events to Google.
 
 --------------------------
-
 Server Side
 
 *  [core_post](/src/core_dos/server/core_post)
