@@ -50,7 +50,7 @@ public class JsEvent {
 				"\"location\": \""+location+"\","+
 				"\"start\": "+start.toJson()+","+
 				"\"end\": "+end.toJson()+"}";
-		System.out.println(ret);
+		//System.out.println(ret);
 		return ret;
 	}
 	
@@ -58,15 +58,15 @@ public class JsEvent {
 	public boolean equals(Object comp){
 		JsEvent that = (JsEvent) comp;
 		
-		System.out.println(this.location.equals(that.location));
+		//System.out.println(this.location.equals(that.location));
 		
 		boolean ret = this.summary.equals(that.summary) &&
 				this.start.equals(that.start) &&
 				this.end.equals(that.end);
 		//events do not require a location
 		//this.location.equals(that.location) &&
-		System.out.println(this.summary+"="+that.summary+":"+ret);
-		System.out.println("----"+this.toJson()+":"+that.toJson()+"----");
+		//System.out.println(this.summary+"="+that.summary+":"+ret);
+		//System.out.println("----"+this.toJson()+":"+that.toJson()+"----");
 		return ret;
 	}
 	static String fix_string(String input){

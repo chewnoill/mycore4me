@@ -88,7 +88,11 @@ public class registry_server extends RemoteServiceServlet implements register_us
 		if(g_post == null){
 			g_post = new google_post();
 		}
+		if(c_post==null){
+			return null;
+		}
 		try {
+			
 			return g_post.post(c_post.getEvents());
 		} catch (UnauthorizedException e) {
 			// TODO Auto-generated catch block

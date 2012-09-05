@@ -191,9 +191,11 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 								serverResponseLabel.setHTML(SERVER_ERROR);
 								dialogBox.center();
 								closeButton.setFocus(true);
+								sendCoreButton.setEnabled(true);
 							}
 
 							public void onSuccess(String result) {
+								sendCoreButton.setEnabled(true);
 								dialogBox.setText("Remote Procedure Call");
 								serverResponseLabel
 										.removeStyleName("serverResponseLabelError");
@@ -216,10 +218,15 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 
 			@Override
 			public void onClick(ClickEvent event) {
+				sendGoogleButton.setEnabled(false);
 				reg_service.post_to_google(new AsyncCallback<String>() {
-
+				
 				@Override
 				public void onFailure(Throwable caught) {
+					serverResponseLabel.setHTML("Error!! "+caught.getMessage());
+					dialogBox.center();
+					closeButton.setFocus(true);	
+					sendGoogleButton.setEnabled(true);
 					
 					
 				}
@@ -229,6 +236,7 @@ public class Core_dos implements EntryPoint,ValueChangeHandler {
 					serverResponseLabel.setHTML("Sent!");
 					dialogBox.center();
 					closeButton.setFocus(true);	
+					sendGoogleButton.setEnabled(true);
 					
 				}});
 				

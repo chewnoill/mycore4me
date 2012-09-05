@@ -56,11 +56,11 @@ public class google_post {
 		cal_id = findCalendar(CAL_NAME);
 		//if calendar not found
 		//create
-		System.out.println("cal_id1: "+cal_id);
+		//System.out.println("cal_id1: "+cal_id);
 		if(cal_id==null){
 			cal_id = createCal(CAL_NAME);
 		}
-		System.out.println("cal_id2: "+cal_id);
+		//System.out.println("cal_id2: "+cal_id);
 		//get calId from calObject
 		/*
 		 * encoding: application/json; charset=UTF-8
@@ -73,7 +73,7 @@ public class google_post {
 		 */
 		
 		String results = insertEvents(cal_id,jsEventList);
-		return results;
+		return "Success";
 	}
 	public String checkToken(String access_token){
 		this.access_token = access_token;
@@ -86,7 +86,7 @@ public class google_post {
 		//headers.set("ClientId",secret.CLIENT_ID);
 		
 		//check/accept token
-		System.out.println("check auth");
+		//System.out.println("check auth");
 		try {
 			hr = Global.HRF.buildGetRequest(
 					new GenericUrl(CHECK_TOKEN+
@@ -97,7 +97,7 @@ public class google_post {
 			this.access_token = null;
 			e.printStackTrace();
 			
-			return e.getMessage();
+			return "Error: "+e.getMessage();
 		}
 		
 	}
@@ -116,7 +116,7 @@ public class google_post {
 		HttpRequest hr;
 		HttpResponse response;
 		String output;
-		System.out.println("check calID");
+		//System.out.println("check calID");
 		try {
 			hr = Global.HRF.buildGetRequest(
 					new GenericUrl(BASE_CAL+LIST+
@@ -141,7 +141,7 @@ public class google_post {
 			e.printStackTrace();
 			return e.getMessage();
 		} catch (Exception e) {
-			System.out.println("ERROR======"+e.getMessage());
+			//System.out.println("ERROR======"+e.getMessage());
 			e.printStackTrace();
 		}
 		
@@ -160,7 +160,7 @@ public class google_post {
 		JsonHttpContent update = new JsonHttpContent(Global.JF, 
 				hm);
 		
-		System.out.println("update to string:"+update+"\n\n---");
+		//System.out.println("update to string:"+update+"\n\n---");
 		try {
 			hr = Global.HRF.buildPostRequest(new GenericUrl(BASE_CAL+GET+
 					"?key="+secret.API_KEY),
@@ -168,7 +168,7 @@ public class google_post {
 
 			hr.setHeaders(headers);
 			
-			System.out.println("encoding: " + hr.getContent().getType());
+			//System.out.println("encoding: " + hr.getContent().getType());
 			response = hr.execute();
 			output = response.parseAsString();
 			
@@ -196,7 +196,7 @@ public class google_post {
 		hr.setHeaders(headers);
 		HttpResponse response = hr.execute();
 		String output = response.parseAsString();
-		System.out.println(output);
+		//System.out.println(output);
 		Gson gson = new Gson();
 		
 		
@@ -210,9 +210,9 @@ public class google_post {
 		
 		for(JsEvent ev : jsEventList.events ){
 			if(found.contains(ev)){
-				System.out.println("found it");
+				//System.out.println("found it");
 			} else {
-				System.out.println("new");
+				//System.out.println("new");
 				insertEvent(calId,ev);
 			}
 			
@@ -242,9 +242,9 @@ public class google_post {
 		
 		JsonHttpContent update = new JsonHttpContent(Global.JF,event.toJsonContent());
 		
-		System.out.println("update to string:\n");
+		//System.out.println("update to string:\n");
 		try {
-			update.writeTo(System.out);
+			//update.writeTo(System.out);
 		
 			hr = Global.HRF.buildPostRequest(new GenericUrl(BASE_CAL+GET+"/"+calId+"/events"+
 					"?key="+secret.API_KEY),
@@ -258,7 +258,7 @@ public class google_post {
 			e.printStackTrace();
 			return e.getMessage();
 		}
-		System.out.println(output);
+		//System.out.println(output);
 		return null;
 	}
 }

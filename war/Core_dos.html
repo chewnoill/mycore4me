@@ -13,14 +13,24 @@
     var help = false; 
 	function toggleHelpAbout() {
 		var div = document.getElementById('help_about');
+		var close_div = document.getElementById('close_help_about');
 		if(help){
 			div.innerHTML="";	
+			close_div.innerHTML="";
 			help = false;
 		} else {
 			help = true;
-			div.innerHTML ="<a href='#' onclick='toggleHelpAbout()';>"+
-				"<iframe id='help_about_container' class='help_about_big' src='./help_about.html'></iframe>"+
-				"</a>";
+			div.innerHTML = "<div id='help_about_container' class='help_about_big'>"+
+				"<a href='#' onclick='toggleHelpAbout();'>"+
+				"<img src='img/no48x48.png' class='help_about_close'></a>"+
+				'<table>'+
+				'<tr><td colspan="2"><img src = "img/medi_mouse.png"></td></tr>'+
+				'<tr><td>created by:</td>'+
+				'<td>will cohen</td>'+
+				'</tr><tr><td>version: </td><td> 1.01</td></tr>'+	
+				'<tr><td>source: </td><td><a href="https://github.com/chewnoill/mycore4me" target="_blank">github</a>'+
+				'</td></tr></table>'+
+				"</div>";
 			
 		}
 		
@@ -75,7 +85,9 @@
     
     <table id="main_table" class="event_table" ></table>
     
+    <div id="close_help_about"></div>
     <div id="help_about"></div>
+    
     <div class="help_about_mini">
     <a href="#HelpAbout" onclick="javascript: toggleHelpAbout()"><img src="img/medi_mouse48x48.png">
     

@@ -91,4 +91,14 @@ h1 {
     margin-left: -150px;
   	height:460px;
   	width:300px
-  	
+  	z-index:2
+}
+.help_about_close{
+	color:black;
+    position:absolute;
+	left:0px;
+	top:0px;
+
+  	height:48px;
+  	width:48px
+}
